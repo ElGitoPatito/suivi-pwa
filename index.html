@@ -1272,11 +1272,12 @@
     importBackupInput.addEventListener('change', importBackupData);
     resetAppBtn.addEventListener('click', resetEntireApp);
 
-    window.addEventListener('load', () => {
+        window.addEventListener('load', () => {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.error('Erreur SW :', err));
       }
       refreshAllUI();
+
       const p = new URLSearchParams(window.location.search);
       if (p.get('action') === 'quick_log') {
         const cat = getCatalogue();
