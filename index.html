@@ -186,6 +186,38 @@
     h1 { font-size: 1.15rem; margin: 0; color: #0f172a; }
     #counter { font-size: 0.8rem; color: #64748b; }
 
+    .streak-banner {
+      width: 100%;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #2563eb;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .streak-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .streak-icon { font-size: 1.1rem; }
+    .streak-label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #1e293b;
+    }
+    .streak-counter {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #2563eb;
+      letter-spacing: 0.02em;
+    }
+
     #dashboard-tiles {
       width: 100%;
       display: flex;
@@ -372,7 +404,7 @@
     <div class="drawer-nav">
       <button class="drawer-item active" data-view="view-app">📊 Suivi d'activité</button>
       <button class="drawer-item" data-view="view-catalogue">⚙️ Catalogue des habitudes</button>
-      <button class="drawer-item" data-view="view-domains">🏷️ Domaines & Thématiques</button>
+      <button class="drawer-item" data-view="view-domains">🏷 Domaines & Thématiques</button>
       <button class="drawer-item" data-view="view-doc">📖 Protocole & Relais</button>
     </div>
     <div class="drawer-footer">
@@ -388,6 +420,15 @@
       <h1>Tableau de bord</h1>
       <div id="counter">0 enregistrement</div>
     </header>
+
+    <div id="streak-card" class="streak-banner" style="display: none;">
+      <div class="streak-info">
+        <span class="streak-icon">⏳</span>
+        <span class="streak-label" id="streak-label">Continuité</span>
+      </div>
+      <div class="streak-counter" id="streak-counter">0 j 00 h 00 min</div>
+    </div>
+
     <div id="dashboard-tiles"></div>
     <section id="history-section">
       <details class="history-accordion">
@@ -507,29 +548,29 @@
       <div id="sub-tuto" class="sub-tab-content active">
         <div class="doc-step">
           <h3>1. Mental Model du Relais Cloud</h3>
-          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>[span_2](start_span)[span_2](end_span). Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi[span_3](start_span)[span_3](end_span).</p>
+          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>. Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi.</p>
         </div>
         <div class="doc-step">
           <h3>2. La règle absolue : Navigation Privée</h3>
           <div class="doc-warning">
-            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps[span_4](start_span)[span_4](end_span). Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet[span_5](start_span)[span_5](end_span).
+            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps. Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet.
           </div>
         </div>
         <div class="doc-step">
           <h3>3. Procédure de déploiement d'une version</h3>
           <p>Pour modifier le script sans casser l'URL Web de la PWA :</p>
-          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer)[span_6](start_span)[span_6](end_span).</p>
-          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>[span_7](start_span)[span_7](end_span).</p>
-          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif[span_8](start_span)[span_8](end_span).</p>
-          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>[span_9](start_span)[span_9](end_span).</p>
-          <p>5. Cliquer sur <strong>Déployer</strong>[span_10](start_span)[span_10](end_span). L'adresse se terminant par <code>/exec</code> reste identique[span_11](start_span)[span_11](end_span).</p>
+          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer).</p>
+          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>.</p>
+          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif.</p>
+          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>.</p>
+          <p>5. Cliquer sur <strong>Déployer</strong>. L'adresse se terminant par <code>/exec</code> reste identique.</p>
         </div>
       </div>
       <div id="sub-arch" class="sub-tab-content">
         <div class="doc-step">
           <h3>1. Structure du tableur Google Sheets (8 colonnes)</h3>
           <p>Sur la ligne 1 de la feuille active, définir rigoureusement :</p>
-          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>[span_12](start_span)[span_12](end_span)
+          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>
         </div>
         <div class="doc-step">
           <h3>2. Code Apps Script récepteur (Code.gs)</h3>
@@ -644,6 +685,11 @@
     const fieldFinal = document.getElementById('field-final');
     const btnCancel = document.getElementById('btn-cancel');
     const adminBehaviorList = document.getElementById('admin-behavior-list');
+
+    const streakCard = document.getElementById('streak-card');
+    const streakLabel = document.getElementById('streak-label');
+    const streakCounter = document.getElementById('streak-counter');
+    const DEFAULT_STREAK_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime();
 
     const STORAGE_KEY = 'behavior_logs';
     const CATALOGUE_KEY = 'behavior_catalogue';
@@ -847,6 +893,7 @@
       const catalogue = getCatalogue();
       const editingId = fieldId.value;
       const chosenUnit = fieldMode.value === 'timer' ? fieldUnitSelect.value : fieldUnit.value.trim().toLowerCase();
+      const existingItem = editingId ? catalogue.find(c => c.id === editingId) : null;
       const behaviorData = {
         id: editingId || 'beh_' + Date.now().toString(36),
         label: fieldLabel.value.trim(),
@@ -855,6 +902,7 @@
         unit: chosenUnit,
         defaultValue: fieldDefault.value !== '' ? Number(fieldDefault.value) : (fieldMode.value === 'timer' ? null : 1),
         phase: fieldPhase.value,
+        trackElapsed: existingItem && existingItem.trackElapsed ? true : false,
         target: {
           direction: fieldDirection.value,
           period: 'jour',
@@ -948,6 +996,38 @@
         const pad = n => String(n).padStart(2, '0');
         el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
       });
+    }
+
+    function updateStreakDisplay() {
+      const catalogue = getCatalogue();
+      const targetItem = catalogue.find(c => c.trackElapsed === true);
+
+      if (!targetItem) {
+        streakCard.style.display = 'none';
+        return;
+      }
+
+      streakCard.style.display = 'flex';
+      streakLabel.textContent = targetItem.label;
+
+      const events = getStoredEvents().filter(e => e.action === targetItem.id || (e.domain === targetItem.domain && e.action === targetItem.label));
+
+      let lastTimestamp = DEFAULT_STREAK_EPOCH;
+      if (events.length > 0) {
+        const timestamps = events.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
+        if (timestamps.length > 0) lastTimestamp = Math.max(...timestamps);
+      }
+
+      const elapsedMs = Math.max(0, Date.now() - lastTimestamp);
+      const totalSec = Math.floor(elapsedMs / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const pad = n => String(n).padStart(2, '0');
+
+      streakCounter.textContent = days > 0
+        ? `${days} j ${pad(hours)} h ${pad(mins)} min`
+        : `${pad(hours)} h ${pad(mins)} min`;
     }
 
     function renderCategoryBar() {
@@ -1059,8 +1139,16 @@
       }
     }
 
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) updateActiveTimerDisplays(); });
-    window.addEventListener('focus', () => updateActiveTimerDisplays());
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        updateActiveTimerDisplays();
+        updateStreakDisplay();
+      }
+    });
+    window.addEventListener('focus', () => {
+      updateActiveTimerDisplays();
+      updateStreakDisplay();
+    });
 
     function createEvent(params = {}) {
       return {
@@ -1133,6 +1221,7 @@
       renderDashboard();
       renderHistory();
       updateSyncIconUI();
+      updateStreakDisplay();
     }
 
     async function syncData() {
@@ -1264,6 +1353,7 @@
       renderCatalogueAdmin();
       renderHistory();
       updateSyncIconUI();
+      updateStreakDisplay();
     }
 
     syncButton.addEventListener('click', syncData);
@@ -1272,11 +1362,12 @@
     importBackupInput.addEventListener('change', importBackupData);
     resetAppBtn.addEventListener('click', resetEntireApp);
 
-        window.addEventListener('load', () => {
+    window.addEventListener('load', () => {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.error('Erreur SW :', err));
       }
       refreshAllUI();
+      setInterval(updateStreakDisplay, 60000);
 
       const p = new URLSearchParams(window.location.search);
       if (p.get('action') === 'quick_log') {
