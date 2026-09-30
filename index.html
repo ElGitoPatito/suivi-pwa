@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <title>Suivi Comportemental TCC</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 12px 14px 24px 14px;
+      background: #f4f4f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .top-header-bar {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 480px;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .btn-burger {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      width: 42px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: #1e293b;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .btn-burger:active { background: #f1f5f9; }
+    .category-scroll-container {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 2px 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex-grow: 1;
+    }
+    .category-scroll-container::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .cat-chip.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+      box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+    }
+    .btn-sync-icon {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      width: 42px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-sync-icon:active { background: #f1f5f9; }
+    .btn-sync-icon.pending { border-color: #f59e0b; background: #fffbeb; }
+    .btn-sync-icon.syncing { opacity: 0.6; }
+
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100vh;
+      background: white;
+      z-index: 201;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title { font-weight: 700; font-size: 1.1rem; color: #1e293b; }
+    .btn-close-drawer { background: transparent; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer; }
+    .drawer-nav { display: flex; flex-direction: column; padding: 12px; gap: 6px; flex-grow: 1; }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      text-align: left;
+    }
+    .drawer-item:active, .drawer-item.active { background: #eff6ff; color: #2563eb; }
+    .drawer-footer {
+      padding: 16px;
+      border-top: 1px solid #e2e8f0;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-drawer-action {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      padding: 11px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    .btn-drawer-action:active { background: #e2e8f0; }
+    button#reset-app-btn {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #e11d48;
+      padding: 11px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button#reset-app-btn:active { background: #ffe4e6; }
+
+    .view-content { display: none; width: 100%; max-width: 480px; }
+    .view-content.active { display: flex; flex-direction: column; align-items: center; }
+
+    header { width: 100%; text-align: left; margin-bottom: 10px; padding: 0 4px; }
+    h1 { font-size: 1.15rem; margin: 0; color: #0f172a; }
+    #counter { font-size: 0.8rem; color: #64748b; }
+
+    #dashboard-tiles {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .behavior-row {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #94a3b8;
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 58px;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .behavior-row.running {
+      background: #f0fdf4;
+      border-color: #86efac;
+      border-left-color: #16a34a !important;
+    }
+    .row-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex-grow: 1;
+      min-width: 0;
+    }
+    .row-title-line { display: flex; align-items: center; gap: 6px; }
+    .row-label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .row-domain-tag {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #94a3b8;
+      letter-spacing: 0.03em;
+    }
+    .row-subtext {
+      font-size: 0.78rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .row-subtext strong { color: #0f172a; }
+    .row-target-status { font-weight: 600; }
+    .row-target-status.success { color: #16a34a; }
+    .row-target-status.alert { color: #dc2626; }
+    .timer-display-live {
+      font-family: monospace;
+      font-weight: 700;
+      color: #16a34a;
+      font-size: 0.88rem;
+      letter-spacing: 0.03em;
+    }
+
+    .row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .btn-action-touch {
+      min-width: 48px;
+      height: 44px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-action-touch:active { transform: scale(0.96); }
+    .btn-action-touch.instant { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+    .btn-action-touch.instant:active { background: #dbeafe; }
+    .btn-action-touch.timer-start { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; font-size: 1.05rem; }
+    .btn-action-touch.timer-start:active { background: #dcfce7; }
+    .btn-action-touch.timer-stop { background: #dc2626; border-color: #b91c1c; color: white; font-size: 0.82rem; padding: 0 10px; }
+    .btn-action-touch.timer-stop:active { background: #b91c1c; }
+    .btn-action-touch.timer-cancel { min-width: 38px; height: 44px; padding: 0 8px; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; font-size: 0.85rem; font-weight: 600; }
+    .btn-action-touch.timer-cancel:active { background: #e2e8f0; }
+
+    section#history-section { width: 100%; margin-top: 8px; }
+    details.history-accordion { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    summary.history-summary {
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      list-style: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    summary.history-summary::-webkit-details-marker { display: none; }
+    .history-toggle-chevron { font-size: 0.72rem; color: #94a3b8; transition: transform 0.2s ease; }
+    details.history-accordion[open] .history-toggle-chevron { transform: rotate(180deg); }
+    details.history-accordion[open] summary.history-summary { border-bottom: 1px solid #f1f5f9; }
+    ul#history-list { list-style: none; padding: 8px 10px 10px 10px; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+    li.event-item {
+      background: #f8fafc;
+      padding: 9px 12px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .event-info { display: flex; flex-direction: column; gap: 2px; }
+    .event-action { font-weight: 600; color: #1e293b; }
+    .event-meta { font-size: 0.7rem; color: #64748b; font-family: monospace; }
+    .badge-pending { font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+    .badge-synced { font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+
+    .admin-card { width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .admin-card h2 { margin: 0; font-size: 1rem; color: #1e293b; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    label { font-size: 0.78rem; font-weight: 600; color: #475569; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
+    input:focus, select:focus { border-color: #2563eb; background: white; outline: none; }
+    .form-actions { display: flex; gap: 8px; margin-top: 4px; }
+    button.btn-primary { flex: 2; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    button.btn-primary:active { background: #1d4ed8; }
+    button.btn-secondary { flex: 1; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+    .admin-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .admin-item { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .admin-item-info { display: flex; flex-direction: column; gap: 2px; }
+    .admin-item-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
+    .admin-item-meta { font-size: 0.75rem; color: #64748b; }
+    .admin-item-actions { display: flex; gap: 6px; }
+    .btn-item-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .btn-item-delete { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+
+    .sub-nav { display: flex; width: 100%; background: #e2e8f0; border-radius: 8px; padding: 3px; margin-bottom: 16px; gap: 4px; }
+    .sub-tab-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 600; font-size: 0.8rem; color: #64748b; border-radius: 6px; cursor: pointer; text-align: center; }
+    .sub-tab-btn.active { background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .sub-tab-content { display: none; width: 100%; }
+    .sub-tab-content.active { display: block; }
+    .doc-container { width: 100%; text-align: left; font-size: 0.88rem; line-height: 1.5; }
+    .doc-step { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .doc-step h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: #1e3a8a; }
+    .doc-warning { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 8px 10px; margin: 8px 0; font-size: 0.8rem; color: #92400e; border-radius: 0 6px 6px 0; }
+    pre { background: #1e293b; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+    code { font-family: monospace; }
+    .doc-footer { font-size: 0.75rem; color: #64748b; text-align: center; margin: 16px 0; }
+  </style>
+</head>
+<body>
+
+  <div class="top-header-bar">
+    <button class="btn-burger" id="burger-open-btn" aria-label="Menu principal">☰</button>
+    <div class="category-scroll-container" id="category-bar"></div>
+    <button class="btn-sync-icon" id="sync-btn" aria-label="Synchronisation Cloud" title="Synchroniser">☁️</button>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <span class="drawer-title">Navigation</span>
+      <button class="btn-close-drawer" id="burger-close-btn">&times;</button>
+    </div>
+    <div class="drawer-nav">
+      <button class="drawer-item active" data-view="view-app">📊 Suivi d'activité</button>
+      <button class="drawer-item" data-view="view-catalogue">⚙️ Catalogue des habitudes</button>
+      <button class="drawer-item" data-view="view-domains">🏷️️ Domaines & Thématiques</button>
+      <button class="drawer-item" data-view="view-doc">📖 Protocole & Relais</button>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn-drawer-action" id="export-backup-btn">📥 Exporter la sauvegarde (JSON)</button>
+      <input type="file" id="import-backup-input" accept=".json" style="display:none;">
+      <button class="btn-drawer-action" id="import-backup-btn">📤 Restaurer une sauvegarde (JSON)</button>
+      <button id="reset-app-btn">Purger les données et le cache</button>
+    </div>
+  </aside>
+
+  <main id="view-app" class="view-content active">
+    <header>
+      <h1>Tableau de bord</h1>
+      <div id="counter">0 enregistrement</div>
+    </header>
+    <div id="dashboard-tiles"></div>
+    <section id="history-section">
+      <details class="history-accordion">
+        <summary class="history-summary">
+          <span>Derniers passages</span>
+          <span class="history-toggle-chevron">▼</span>
+        </summary>
+        <ul id="history-list"></ul>
+      </details>
+    </section>
+  </main>
+
+  <section id="view-catalogue" class="view-content">
+    <div class="admin-card">
+      <h2 id="form-title">Ajouter un comportement</h2>
+      <form id="behavior-form">
+        <input type="hidden" id="field-id">
+        <div class="form-group">
+          <label for="field-label">Nom du comportement</label>
+          <input type="text" id="field-label" placeholder="ex. Méditation, Pompes, Café" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-domain">Domaine / Thématique</label>
+            <select id="field-domain" required></select>
+          </div>
+          <div class="form-group">
+            <label for="field-mode">Mode de mesure</label>
+            <select id="field-mode">
+              <option value="instant">Clic instantané</option>
+              <option value="timer">Chronomètre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-unit">Unité</label>
+            <input type="text" id="field-unit" placeholder="ex. tasse, rep" required>
+            <select id="field-unit-select" style="display:none;">
+              <option value="min">min (Minutes)</option>
+              <option value="sec">sec (Secondes)</option>
+              <option value="h">h (Heures)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-default" id="label-default">Valeur par clic</label>
+            <input type="number" id="field-default" step="any" placeholder="Optionnel (défaut : 1)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-phase">Phase clinique</label>
+            <select id="field-phase">
+              <option value="baseline">Observation (Baseline)</option>
+              <option value="target">Intervention (Paliers)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="field-direction">Sens d'objectif</label>
+            <select id="field-direction">
+              <option value="decrease">Réduction (Plafond)</option>
+              <option value="increase">Développement (Plancher)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="field-baseline">Baseline (départ)</label>
+            <input type="number" id="field-baseline" step="any" placeholder="Optionnel">
+          </div>
+          <div class="form-group">
+            <label for="field-step">Palier actif</label>
+            <input type="number" id="field-step" step="any" placeholder="Optionnel">
+          </div>
+          <div class="form-group">
+            <label for="field-final">Cible finale</label>
+            <input type="number" id="field-final" step="any" placeholder="Optionnel">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="btn-save">Enregistrer</button>
+          <button type="button" class="btn-secondary" id="btn-cancel" style="display:none;">Annuler</button>
+        </div>
+      </form>
+    </div>
+    <div class="admin-card">
+      <h2>Comportements configurés</h2>
+      <div class="admin-list" id="admin-behavior-list"></div>
+    </div>
+  </section>
+
+  <section id="view-domains" class="view-content">
+    <div class="admin-card">
+      <h2>Créer un domaine</h2>
+      <form id="domain-form">
+        <div class="form-group">
+          <label for="new-domain-input">Nom de la thématique</label>
+          <input type="text" id="new-domain-input" placeholder="ex. sommeil, nutrition, travail" required>
+        </div>
+        <div class="form-actions" style="margin-top: 8px;">
+          <button type="submit" class="btn-primary">Ajouter le domaine</button>
+        </div>
+      </form>
+    </div>
+    <div class="admin-card">
+      <h2>Domaines configurés</h2>
+      <div class="admin-list" id="domains-list"></div>
+    </div>
+  </section>
+
+  <section id="view-doc" class="view-content">
+    <div class="doc-container">
+      <nav class="sub-nav">
+        <button class="sub-tab-btn active" data-subtab="sub-tuto">Tuto Relais & Déploiement</button>
+        <button class="sub-tab-btn" data-subtab="sub-arch">Architecture & Recette</button>
+      </nav>
+      <div id="sub-tuto" class="sub-tab-content active">
+        <div class="doc-step">
+          <h3>1. Mental Model du Relais Cloud</h3>
+          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>. Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi.</p>
+        </div>
+        <div class="doc-step">
+          <h3>2. La règle absolue : Navigation Privée</h3>
+          <div class="doc-warning">
+            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps. Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet.
+          </div>
+        </div>
+        <div class="doc-step">
+          <h3>3. Procédure de déploiement d'une version</h3>
+          <p>Pour modifier le script sans casser l'URL Web de la PWA :</p>
+          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer).</p>
+          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>.</p>
+          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif.</p>
+          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>.</p>
+          <p>5. Cliquer sur <strong>Déployer</strong>. L'adresse se terminant par <code>/exec</code> reste identique.</p>
+        </div>
+      </div>
+      <div id="sub-arch" class="sub-tab-content">
+        <div class="doc-step">
+          <h3>1. Structure du tableur Google Sheets (8 colonnes)</h3>
+          <p>Sur la ligne 1 de la feuille active, définir rigoureusement :</p>
+          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>
+        </div>
+        <div class="doc-step">
+          <h3>2. Code Apps Script récepteur (Code.gs)</h3>
+          <pre><code>function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    var items = Array.isArray(data) ? data : [data];
+    var receptionTime = new Date().toISOString();
+    
+    items.forEach(function(item) {
+      sheet.appendRow([
+        item.id,
+        item.timestamp,
+        item.date_fr || '',
+        item.domain || 'general',
+        item.action || 'passage',
+        item.value !== null ? item.value : '',
+        item.unit || '',
+        receptionTime
+      ]);
+    });
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      count: items.length
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}</code></pre>
+        </div>
+      </div>
+      <div class="doc-footer">
+        Fiche technique embarquée • Suivi comportemental autonome
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function getDomainColor(domain) {
+      const palette = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
+      let hash = 0;
+      for (let i = 0; i < domain.length; i++) hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+      return palette[Math.abs(hash) % palette.length];
+    }
+
+    const burgerOpenBtn = document.getElementById('burger-open-btn');
+    const burgerCloseBtn = document.getElementById('burger-close-btn');
+    const drawer = document.getElementById('drawer');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    const drawerItems = document.querySelectorAll('.drawer-item');
+    const viewContents = document.querySelectorAll('.view-content');
+
+    function openDrawer() { drawer.classList.add('open'); drawerOverlay.classList.add('open'); }
+    function closeDrawer() { drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
+
+    burgerOpenBtn.addEventListener('click', openDrawer);
+    burgerCloseBtn.addEventListener('click', closeDrawer);
+    drawerOverlay.addEventListener('click', closeDrawer);
+
+    drawerItems.forEach(item => {
+      item.addEventListener('click', () => {
+        drawerItems.forEach(b => b.classList.remove('active'));
+        viewContents.forEach(v => v.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById(item.dataset.view).classList.add('active');
+        closeDrawer();
+      });
+    });
+
+    const subTabButtons = document.querySelectorAll('.sub-tab-btn');
+    const subTabContents = document.querySelectorAll('.sub-tab-content');
+    subTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        subTabButtons.forEach(b => b.classList.remove('active'));
+        subTabContents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.subtab).classList.add('active');
+      });
+    });
+
+    const categoryBar = document.getElementById('category-bar');
+    const syncButton = document.getElementById('sync-btn');
+    const counterDisplay = document.getElementById('counter');
+    const historyList = document.getElementById('history-list');
+    const exportBackupBtn = document.getElementById('export-backup-btn');
+    const importBackupBtn = document.getElementById('import-backup-btn');
+    const importBackupInput = document.getElementById('import-backup-input');
+    const resetAppBtn = document.getElementById('reset-app-btn');
+    const dashboardTiles = document.getElementById('dashboard-tiles');
+    const domainForm = document.getElementById('domain-form');
+    const newDomainInput = document.getElementById('new-domain-input');
+    const domainsList = document.getElementById('domains-list');
+    const behaviorForm = document.getElementById('behavior-form');
+    const formTitle = document.getElementById('form-title');
+    const fieldId = document.getElementById('field-id');
+    const fieldLabel = document.getElementById('field-label');
+    const fieldDomain = document.getElementById('field-domain');
+    const fieldMode = document.getElementById('field-mode');
+    const fieldUnit = document.getElementById('field-unit');
+    const fieldUnitSelect = document.getElementById('field-unit-select');
+    const fieldDefault = document.getElementById('field-default');
+    const labelDefault = document.getElementById('label-default');
+    const fieldPhase = document.getElementById('field-phase');
+    const fieldDirection = document.getElementById('field-direction');
+    const fieldBaseline = document.getElementById('field-baseline');
+    const fieldStep = document.getElementById('field-step');
+    const fieldFinal = document.getElementById('field-final');
+    const btnCancel = document.getElementById('btn-cancel');
+    const adminBehaviorList = document.getElementById('admin-behavior-list');
+
+    const STORAGE_KEY = 'behavior_logs';
+    const CATALOGUE_KEY = 'behavior_catalogue';
+    const DOMAINS_KEY = 'behavior_domains';
+    const TIMERS_KEY = 'active_timers';
+    const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxJqMJtsi7OUsZlICIBfpGUlFPMUV45NgK3oVa4RtZtG0IZWtpEhkhRokKQA3JYJUoT/exec';
+
+    let timerInterval = null;
+    let selectedDomainFilter = 'all';
+
+    const INITIAL_DOMAINS = ["consommation", "sante", "sport"];
+    const INITIAL_CATALOGUE = [
+      {
+        id: "comportement_a",
+        label: "Café",
+        domain: "consommation",
+        mode: "instant",
+        unit: "tasse",
+        defaultValue: 1,
+        phase: "target",
+        target: { direction: "decrease", period: "jour", baseline: 6, currentStep: 4, finalTarget: 2 }
+      },
+      {
+        id: "comportement_b",
+        label: "Méditation",
+        domain: "sante",
+        mode: "timer",
+        unit: "min",
+        defaultValue: null,
+        phase: "baseline",
+        target: { direction: "increase", period: "jour", baseline: null, currentStep: null, finalTarget: null }
+      },
+      {
+        id: "comportement_c",
+        label: "Marche active",
+        domain: "sport",
+        mode: "instant",
+        unit: "min",
+        defaultValue: 15,
+        phase: "target",
+        target: { direction: "increase", period: "jour", baseline: 0, currentStep: 20, finalTarget: 45 }
+      }
+    ];
+
+    function getCatalogue() {
+      const raw = localStorage.getItem(CATALOGUE_KEY);
+      if (!raw) {
+        localStorage.setItem(CATALOGUE_KEY, JSON.stringify(INITIAL_CATALOGUE));
+        return INITIAL_CATALOGUE;
+      }
+      return JSON.parse(raw);
+    }
+    function saveCatalogue(catalogue) { localStorage.setItem(CATALOGUE_KEY, JSON.stringify(catalogue)); }
+
+    function getDomains() {
+      const raw = localStorage.getItem(DOMAINS_KEY);
+      if (!raw) {
+        const catalogue = getCatalogue();
+        const existing = Array.from(new Set(catalogue.map(c => c.domain.toLowerCase())));
+        const domains = existing.length > 0 ? existing : INITIAL_DOMAINS;
+        localStorage.setItem(DOMAINS_KEY, JSON.stringify(domains));
+        return domains;
+      }
+      return JSON.parse(raw);
+    }
+    function saveDomains(domains) { localStorage.setItem(DOMAINS_KEY, JSON.stringify(domains)); }
+
+    function getActiveTimers() {
+      const raw = localStorage.getItem(TIMERS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }
+    function saveActiveTimers(timers) { localStorage.setItem(TIMERS_KEY, JSON.stringify(timers)); }
+
+    domainForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = newDomainInput.value.trim().toLowerCase();
+      if (!name) return;
+      const domains = getDomains();
+      if (domains.includes(name)) { alert('Ce domaine existe déjà.'); return; }
+      domains.push(name);
+      saveDomains(domains);
+      newDomainInput.value = '';
+      refreshAllUI();
+    });
+
+    function deleteDomain(domainToDelete) {
+      const catalogue = getCatalogue();
+      const linked = catalogue.filter(c => c.domain.toLowerCase() === domainToDelete);
+      if (linked.length > 0) {
+        alert(`Impossible de supprimer « ${domainToDelete} » : ${linked.length} comportement(s) y sont rattachés.`);
+        return;
+      }
+      if (!confirm(`Supprimer le domaine « ${domainToDelete} » ?`)) return;
+      let domains = getDomains().filter(d => d !== domainToDelete);
+      saveDomains(domains);
+      if (selectedDomainFilter === domainToDelete) selectedDomainFilter = 'all';
+      refreshAllUI();
+    }
+
+    function renderDomainsAdmin() {
+      const domains = getDomains();
+      const catalogue = getCatalogue();
+      domainsList.innerHTML = '';
+      if (domains.length === 0) { domainsList.innerHTML = '<div style="font-size:0.85rem; color:#888;">Aucun domaine.</div>'; return; }
+      domains.forEach(dom => {
+        const count = catalogue.filter(c => c.domain.toLowerCase() === dom).length;
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.innerHTML = `
+          <div class="admin-item-info">
+            <span class="admin-item-name">${dom.charAt(0).toUpperCase() + dom.slice(1)}</span>
+            <span class="admin-item-meta">${count} comportement${count > 1 ? 's' : ''}</span>
+          </div>
+          <div class="admin-item-actions">
+            <button class="btn-item-delete" data-domain="${dom}">Suppr.</button>
+          </div>
+        `;
+        div.querySelector('.btn-item-delete').addEventListener('click', () => deleteDomain(dom));
+        domainsList.appendChild(div);
+      });
+    }
+
+    function renderDomainSelect(selectedVal = '') {
+      const domains = getDomains();
+      fieldDomain.innerHTML = '';
+      domains.forEach(dom => {
+        const opt = document.createElement('option');
+        opt.value = dom;
+        opt.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
+        if (dom === selectedVal) opt.selected = true;
+        fieldDomain.appendChild(opt);
+      });
+    }
+
+    function updateFormModeUI() {
+      if (fieldMode.value === 'timer') {
+        labelDefault.textContent = 'Durée indicative (optionnel)';
+        fieldUnit.style.display = 'none';
+        fieldUnit.removeAttribute('required');
+        fieldUnitSelect.style.display = 'block';
+        if (!fieldUnitSelect.value) fieldUnitSelect.value = 'min';
+      } else {
+        labelDefault.textContent = 'Valeur par clic (optionnel)';
+        fieldUnitSelect.style.display = 'none';
+        fieldUnit.style.display = 'block';
+        fieldUnit.setAttribute('required', 'required');
+      }
+    }
+    fieldMode.addEventListener('change', updateFormModeUI);
+
+    function resetForm() {
+      behaviorForm.reset();
+      fieldId.value = '';
+      fieldMode.value = 'instant';
+      fieldPhase.value = 'baseline';
+      fieldUnitSelect.value = 'min';
+      formTitle.textContent = 'Ajouter un comportement';
+      btnCancel.style.display = 'none';
+      renderDomainSelect();
+      updateFormModeUI();
+    }
+
+    function loadBehaviorInForm(id) {
+      const item = getCatalogue().find(c => c.id === id);
+      if (!item) return;
+      fieldId.value = item.id;
+      fieldLabel.value = item.label;
+      renderDomainSelect(item.domain.toLowerCase());
+      fieldMode.value = item.mode || 'instant';
+      if (fieldMode.value === 'timer') {
+        fieldUnitSelect.value = ['min', 'sec', 'h'].includes(item.unit) ? item.unit : 'min';
+        fieldUnit.value = '';
+      } else {
+        fieldUnit.value = item.unit || '';
+      }
+      fieldDefault.value = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : '';
+      fieldPhase.value = item.phase || 'baseline';
+      fieldDirection.value = item.target ? item.target.direction : 'increase';
+      fieldBaseline.value = (item.target && item.target.baseline !== null && item.target.baseline !== undefined) ? item.target.baseline : '';
+      fieldStep.value = (item.target && item.target.currentStep !== null && item.target.currentStep !== undefined) ? item.target.currentStep : '';
+      fieldFinal.value = (item.target && item.target.finalTarget !== null && item.target.finalTarget !== undefined) ? item.target.finalTarget : '';
+      formTitle.textContent = `Modifier : ${item.label}`;
+      btnCancel.style.display = 'inline-block';
+      updateFormModeUI();
+      document.querySelector('[data-view="view-catalogue"]').click();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteBehavior(id) {
+      const item = getCatalogue().find(c => c.id === id);
+      if (!item || !confirm(`Supprimer « ${item.label} » du catalogue ?`)) return;
+      saveCatalogue(getCatalogue().filter(c => c.id !== id));
+      const timers = getActiveTimers();
+      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); }
+      refreshAllUI();
+      if (fieldId.value === id) resetForm();
+    }
+
+    behaviorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const catalogue = getCatalogue();
+      const editingId = fieldId.value;
+      const chosenUnit = fieldMode.value === 'timer' ? fieldUnitSelect.value : fieldUnit.value.trim().toLowerCase();
+      const behaviorData = {
+        id: editingId || 'beh_' + Date.now().toString(36),
+        label: fieldLabel.value.trim(),
+        domain: fieldDomain.value.trim().toLowerCase(),
+        mode: fieldMode.value,
+        unit: chosenUnit,
+        defaultValue: fieldDefault.value !== '' ? Number(fieldDefault.value) : (fieldMode.value === 'timer' ? null : 1),
+        phase: fieldPhase.value,
+        target: {
+          direction: fieldDirection.value,
+          period: 'jour',
+          baseline: fieldBaseline.value !== '' ? Number(fieldBaseline.value) : null,
+          currentStep: fieldStep.value !== '' ? Number(fieldStep.value) : null,
+          finalTarget: fieldFinal.value !== '' ? Number(fieldFinal.value) : null
+        }
+      };
+      if (editingId) {
+        const idx = catalogue.findIndex(c => c.id === editingId);
+        if (idx !== -1) catalogue[idx] = behaviorData;
+      } else {
+        catalogue.push(behaviorData);
+      }
+      saveCatalogue(catalogue);
+      resetForm();
+      refreshAllUI();
+    });
+    btnCancel.addEventListener('click', resetForm);
+
+    function renderCatalogueAdmin() {
+      const catalogue = getCatalogue();
+      adminBehaviorList.innerHTML = '';
+      if (catalogue.length === 0) { adminBehaviorList.innerHTML = '<div style="font-size:0.85rem; color:#888;">Aucun comportement.</div>'; return; }
+      catalogue.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.innerHTML = `
+          <div class="admin-item-info">
+            <span class="admin-item-name">${item.label}</span>
+            <span class="admin-item-meta">${item.domain} • ${item.mode === 'timer' ? '⏱ Chrono' : '⚡ Clic'} (${item.unit})</span>
+          </div>
+          <div class="admin-item-actions">
+            <button class="btn-item-edit" data-id="${item.id}">Éditer</button>
+            <button class="btn-item-delete" data-id="${item.id}">Suppr.</button>
+          </div>
+        `;
+        div.querySelector('.btn-item-edit').addEventListener('click', () => loadBehaviorInForm(item.id));
+        div.querySelector('.btn-item-delete').addEventListener('click', () => deleteBehavior(item.id));
+        adminBehaviorList.appendChild(div);
+      });
+    }
+
+    function startTimer(id) {
+      const timers = getActiveTimers();
+      timers[id] = Date.now();
+      saveActiveTimers(timers);
+      renderDashboard();
+    }
+    function cancelTimer(id) {
+      const timers = getActiveTimers();
+      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); renderDashboard(); }
+    }
+    function stopTimer(id) {
+      const timers = getActiveTimers();
+      const startTime = timers[id];
+      if (!startTime) return;
+      const endTime = Date.now();
+      const elapsedMs = endTime - startTime;
+      const item = getCatalogue().find(c => c.id === id);
+      if (!item) return;
+
+      const unit = (item.unit || 'min').toLowerCase();
+      let val = 0;
+      if (unit === 'sec') val = Math.floor(elapsedMs / 1000);
+      else if (unit === 'h') val = Math.round((elapsedMs / 3600000) * 100) / 100;
+      else val = Math.round((elapsedMs / 60000) * 100) / 100;
+
+      const fmt = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const rawSec = Math.floor(elapsedMs / 1000);
+      const note = `Session : ${fmt(new Date(startTime))} -> ${fmt(new Date(endTime))} (durée brute : ${rawSec} s)`;
+
+      delete timers[id];
+      saveActiveTimers(timers);
+      logEvent({ domain: item.domain, action: item.id, value: val, unit: item.unit, notes: note });
+      renderDashboard();
+    }
+
+    function updateActiveTimerDisplays() {
+      const timers = getActiveTimers();
+      const displays = document.querySelectorAll('.timer-display-live');
+      const now = Date.now();
+      displays.forEach(el => {
+        const id = el.dataset.behaviorId;
+        const st = timers[id];
+        if (!st) return;
+        const sec = Math.floor((now - st) / 1000);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        const pad = n => String(n).padStart(2, '0');
+        el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+      });
+    }
+
+    function renderCategoryBar() {
+      const domains = getDomains().sort();
+      categoryBar.innerHTML = '';
+      const all = document.createElement('button');
+      all.className = `cat-chip ${selectedDomainFilter === 'all' ? 'active' : ''}`;
+      all.textContent = 'Tous';
+      all.addEventListener('click', () => { selectedDomainFilter = 'all'; renderCategoryBar(); renderDashboard(); });
+      categoryBar.appendChild(all);
+
+      domains.forEach(dom => {
+        const chip = document.createElement('button');
+        chip.className = `cat-chip ${selectedDomainFilter === dom ? 'active' : ''}`;
+        chip.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
+        chip.addEventListener('click', () => { selectedDomainFilter = dom; renderCategoryBar(); renderDashboard(); });
+        categoryBar.appendChild(chip);
+      });
+    }
+
+    function renderDashboard() {
+      const catalogue = getCatalogue();
+      const events = getStoredEvents();
+      const activeTimers = getActiveTimers();
+      dashboardTiles.innerHTML = '';
+
+      let filtered = selectedDomainFilter === 'all' ? catalogue : catalogue.filter(c => c.domain.toLowerCase() === selectedDomainFilter);
+      if (filtered.length === 0) {
+        dashboardTiles.innerHTML = '<div style="font-size:0.85rem; color:#888; text-align:center; padding:20px;">Aucun comportement sous cette thématique.</div>';
+        return;
+      }
+
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayStartTime = todayStart.getTime();
+
+      filtered.forEach(item => {
+        const row = document.createElement('div');
+        const isTimer = item.mode === 'timer';
+        const isRunning = isTimer && Boolean(activeTimers[item.id]);
+        row.className = `behavior-row ${isRunning ? 'running' : ''}`;
+        row.style.borderLeftColor = getDomainColor(item.domain);
+
+        const todaySum = events
+          .filter(e => (e.action === item.id || (e.domain === item.domain && e.action === item.label)) && new Date(e.timestamp).getTime() >= todayStartTime)
+          .reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
+        const formattedSum = Number.isInteger(todaySum) ? todaySum : todaySum.toFixed(2);
+        const isBaseline = (item.phase || 'baseline') === 'baseline';
+
+        let subtextHtml = '';
+        if (isRunning) {
+          subtextHtml = `⏱ <span class="timer-display-live" data-behavior-id="${item.id}">00:00</span> <span style="font-size:0.72rem; color:#16a34a; font-weight:600;">(en cours)</span>`;
+        } else if (isBaseline) {
+          subtextHtml = `Aujourd'hui : <strong>${formattedSum}</strong> ${item.unit} <span style="font-size:0.7rem; color:#94a3b8;">(obs)</span>`;
+        } else {
+          const step = (item.target && item.target.currentStep !== null) ? item.target.currentStep : null;
+          const dir = item.target ? item.target.direction : 'increase';
+          if (step !== null) {
+            const ok = dir === 'decrease' ? todaySum <= step : todaySum >= step;
+            const cls = ok ? 'success' : (dir === 'decrease' ? 'alert' : '');
+            subtextHtml = `<span class="row-target-status ${cls}">${formattedSum} / ${step} ${item.unit}</span> <span style="font-size:0.7rem; color:#94a3b8;">(${dir === 'decrease' ? 'max' : 'min'})</span>`;
+          } else {
+            subtextHtml = `Cumul : <strong>${formattedSum}</strong> ${item.unit}`;
+          }
+        }
+
+        let actionsHtml = '';
+        const defVal = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : 1;
+        if (isTimer) {
+          actionsHtml = isRunning
+            ? `<button class="btn-action-touch timer-cancel" data-id="${item.id}" title="Annuler">✕</button><button class="btn-action-touch timer-stop" data-id="${item.id}">⏹ Stop</button>`
+            : `<button class="btn-action-touch timer-start" data-id="${item.id}" title="Démarrer">▶</button>`;
+        } else {
+          actionsHtml = `<button class="btn-action-touch instant" data-id="${item.id}">+${defVal}</button>`;
+        }
+
+        row.innerHTML = `
+          <div class="row-left">
+            <div class="row-title-line">
+              <span class="row-label">${item.label}</span>
+              <span class="row-domain-tag">${item.domain}</span>
+            </div>
+            <div class="row-subtext">${subtextHtml}</div>
+          </div>
+          <div class="row-actions">${actionsHtml}</div>
+        `;
+
+        if (isTimer) {
+          if (isRunning) {
+            row.querySelector('.timer-stop').addEventListener('click', () => stopTimer(item.id));
+            row.querySelector('.timer-cancel').addEventListener('click', () => cancelTimer(item.id));
+          } else {
+            row.querySelector('.timer-start').addEventListener('click', () => startTimer(item.id));
+          }
+        } else {
+          row.querySelector('.instant').addEventListener('click', () => {
+            logEvent({ domain: item.domain, action: item.id, value: defVal, unit: item.unit });
+          });
+        }
+        dashboardTiles.appendChild(row);
+      });
+
+      if (Object.keys(activeTimers).length > 0) {
+        if (!timerInterval) timerInterval = setInterval(updateActiveTimerDisplays, 1000);
+        updateActiveTimerDisplays();
+      } else if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) updateActiveTimerDisplays(); });
+    window.addEventListener('focus', () => updateActiveTimerDisplays());
+
+    function createEvent(params = {}) {
+      return {
+        id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        timestamp: new Date().toISOString(),
+        synced: false,
+        v: 1,
+        domain: String(params.domain || 'general').trim().toLowerCase(),
+        action: String(params.action || 'passage').trim().toLowerCase(),
+        value: typeof params.value === 'number' ? params.value : null,
+        unit: params.unit ? String(params.unit).trim().toLowerCase() : null,
+        tags: Array.isArray(params.tags) ? params.tags.map(t => String(t).trim()) : [],
+        notes: String(params.notes || '').trim()
+      };
+    }
+
+    function validateEvent(ev) {
+      return ev && typeof ev === 'object' && typeof ev.id === 'string' && ev.id && !isNaN(Date.parse(ev.timestamp)) && typeof ev.synced === 'boolean';
+    }
+
+    function getStoredEvents() { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : []; }
+    function saveEvents(ev) { localStorage.setItem(STORAGE_KEY, JSON.stringify(ev)); }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString('fr-FR', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    function renderHistory() {
+      const events = getStoredEvents();
+      const catalogue = getCatalogue();
+      counterDisplay.textContent = `${events.length} enregistrement${events.length > 1 ? 's' : ''}`;
+      historyList.innerHTML = '';
+      const recent = [...events].reverse().slice(0, 10);
+      if (recent.length === 0) {
+        historyList.innerHTML = '<li style="color: #888; font-size: 0.85rem; padding: 4px;">Aucun passage consigné.</li>';
+        return;
+      }
+      const map = new Map(catalogue.map(c => [c.id, c.label]));
+      recent.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'event-item';
+        const badge = item.synced ? '<span class="badge-synced">Synchronisé</span>' : '<span class="badge-pending">En attente</span>';
+        const label = map.get(item.action) || item.action.toUpperCase();
+        const det = item.value !== null && item.value !== undefined ? ` (+${item.value} ${item.unit || ''})`.trim() : '';
+        li.innerHTML = `
+          <div class="event-info">
+            <span class="event-action">${label} <span style="font-weight:normal; color:#475569;">${det}</span></span>
+            <span class="event-meta">${formatDate(item.timestamp)}</span>
+          </div>
+          ${badge}
+        `;
+        historyList.appendChild(li);
+      });
+    }
+
+    function updateSyncIconUI() {
+      const hasPending = getStoredEvents().some(e => !e.synced);
+      if (hasPending) { syncButton.classList.add('pending'); syncButton.title = 'Événements en attente (cliquer)'; }
+      else { syncButton.classList.remove('pending'); syncButton.title = 'Tout est synchronisé'; }
+    }
+
+    function logEvent(params = {}) {
+      const entry = createEvent(params);
+      if (!validateEvent(entry)) return;
+      const ev = getStoredEvents();
+      ev.push(entry);
+      saveEvents(ev);
+      renderDashboard();
+      renderHistory();
+      updateSyncIconUI();
+    }
+
+    async function syncData() {
+      const ev = getStoredEvents();
+      const pending = ev.filter(e => !e.synced);
+      if (pending.length === 0) { updateSyncIconUI(); return; }
+
+      syncButton.disabled = true;
+      syncButton.classList.add('syncing');
+      syncButton.textContent = '⏳';
+
+      const payload = pending.map(e => ({
+        id: e.id,
+        timestamp: e.timestamp,
+        date_fr: formatDate(e.timestamp),
+        domain: e.domain || 'general',
+        action: e.action || 'passage',
+        value: e.value !== undefined ? e.value : null,
+        unit: e.unit || '',
+        notes: e.notes || ''
+      }));
+
+      try {
+        const res = await fetch(SYNC_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const resJson = await res.json();
+        if (resJson.status === 'success') {
+          const ids = new Set(pending.map(e => e.id));
+          saveEvents(ev.map(e => ids.has(e.id) ? { ...e, synced: true } : e));
+          renderHistory();
+        }
+      } catch (err) {
+        console.error('Erreur synchronisation :', err);
+      } finally {
+        syncButton.disabled = false;
+        syncButton.classList.remove('syncing');
+        syncButton.textContent = '☁️';
+        updateSyncIconUI();
+      }
+    }
+
+    function exportBackupData() {
+      const backupPayload = {
+        version: 1,
+        exported_at: new Date().toISOString(),
+        behavior_catalogue: getCatalogue(),
+        behavior_logs: getStoredEvents(),
+        behavior_domains: getDomains(),
+        active_timers: getActiveTimers()
+      };
+
+      const jsonString = JSON.stringify(backupPayload, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const now = new Date();
+      const datePart = now.toISOString().slice(0, 10);
+      const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      const fileName = `suivi_backup_${datePart}_${timePart}.json`;
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = downloadUrl;
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      URL.revokeObjectURL(downloadUrl);
+    }
+
+    function importBackupData(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || typeof data !== 'object') throw new Error('Format de fichier invalide');
+
+          const hasLogs = Array.isArray(data.behavior_logs);
+          const hasCat = Array.isArray(data.behavior_catalogue);
+
+          if (!hasLogs || !hasCat) {
+            alert('Erreur : le fichier JSON ne contient pas les données attendues.');
+            return;
+          }
+
+          if (!confirm('Attention : restaurer ce fichier écrasera les données locales actuelles. Continuer ?')) {
+            importBackupInput.value = '';
+            return;
+          }
+
+          if (data.behavior_catalogue) saveCatalogue(data.behavior_catalogue);
+          if (data.behavior_logs) saveEvents(data.behavior_logs);
+          if (data.behavior_domains) saveDomains(data.behavior_domains);
+          if (data.active_timers) saveActiveTimers(data.active_timers);
+
+          refreshAllUI();
+          alert('Restauration effectuée avec succès !');
+        } catch (err) {
+          alert('Impossible de lire le fichier JSON : ' + err.message);
+        } finally {
+          importBackupInput.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function resetEntireApp() {
+      if (!confirm('Purger tout l’historique local, les chronos et vider le cache ?')) return;
+      if (timerInterval) clearInterval(timerInterval);
+      localStorage.clear();
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const k of keys) await caches.delete(k);
+      }
+      window.location.replace(window.location.pathname);
+    }
+
+    function refreshAllUI() {
+      renderDomainsAdmin();
+      renderDomainSelect();
+      renderCategoryBar();
+      renderDashboard();
+      renderCatalogueAdmin();
+      renderHistory();
+      updateSyncIconUI();
+    }
+
+    syncButton.addEventListener('click', syncData);
+    exportBackupBtn.addEventListener('click', exportBackupData);
+    importBackupBtn.addEventListener('click', () => importBackupInput.click());
+    importBackupInput.addEventListener('change', importBackupData);
+    resetAppBtn.addEventListener('click', resetEntireApp);
+
+    window.addEventListener('load', () => {
+      refreshAllUI();
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('action') === 'quick_log') {
+        const cat = getCatalogue();
+        if (cat.length > 0) {
+          const f = cat[0];
+          if (f.mode === 'timer') {
+            if (!getActiveTimers()[f.id]) startTimer(f.id);
+          } else {
+            logEvent({ domain: f.domain, action: f.id, value: f.defaultValue ?? 1, unit: f.unit });
+          }
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      if (navigator.onLine) syncData();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Nettoyage</title>
+</head>
+<body style="font-family: sans-serif; padding: 24px; text-align: center;">
+  <h2>Nettoyage du cache...</h2>
+  <p id="status">En cours...</p>
+
+  <script>
+    async function clean() {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let reg of registrations) {
+        await reg.unregister();
+      }
+      const keys = await caches.keys();
+      for (let key of keys) {
+        await caches.delete(key);
+      }
+      document.getElementById('status').innerHTML = '<strong>Cache supprimé avec succès !</strong><br><br>Tu peux fermer cette page et relancer index.html.';
+    }
+    clean();
+  </script>
+</body>
+</html>
