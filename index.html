@@ -307,7 +307,7 @@
     .btn-action-touch.timer-cancel { min-width: 38px; height: 44px; padding: 0 8px; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; font-size: 0.85rem; font-weight: 600; }
     .btn-action-touch.timer-cancel:active { background: #e2e8f0; }
 
-    section#history-section { width: 100%; margin-top: 8px; }
+    section#history-section, section#retro-section { width: 100%; margin-top: 8px; }
     details.history-accordion { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
     summary.history-summary {
       padding: 12px 14px;
@@ -489,13 +489,14 @@
 
     <div id="streak-card" class="streak-banner" style="display: none;">
       <div class="streak-info">
-        <span class="streak-icon">⏳</span>
+        <span class="streak-icon" id="streak-icon">⏳</span>
         <span class="streak-label" id="streak-label">Continuité</span>
       </div>
       <div class="streak-counter" id="streak-counter">0 j 00 h 00 min</div>
     </div>
 
     <div id="dashboard-tiles"></div>
+
     <section id="history-section">
       <details class="history-accordion">
         <summary class="history-summary">
@@ -503,6 +504,32 @@
           <span class="history-toggle-chevron">▼</span>
         </summary>
         <ul id="history-list"></ul>
+      </details>
+    </section>
+
+    <section id="retro-section">
+      <details class="history-accordion">
+        <summary class="history-summary">
+          <span>🕒 Saisie différée (Rattrapage)</span>
+          <span class="history-toggle-chevron">▼</span>
+        </summary>
+        <form id="retro-form" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: white;">
+          <div class="form-group">
+            <label for="retro-behavior-select">Comportement</label>
+            <select id="retro-behavior-select" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label for="retro-datetime">Date et heure</label>
+              <input type="datetime-local" id="retro-datetime" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="retro-val">Valeur</label>
+              <input type="number" id="retro-val" step="any" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" style="padding: 10px; margin-top: 4px;">Consigner dans le passé</button>
+        </form>
       </details>
     </section>
   </main>
@@ -529,9 +556,15 @@
       <h2 id="form-title">Ajouter un comportement</h2>
       <form id="behavior-form">
         <input type="hidden" id="field-id">
-        <div class="form-group">
-          <label for="field-label">Nom du comportement</label>
-          <input type="text" id="field-label" placeholder="ex. Méditation, Pompes, Café" required>
+        <div class="form-row">
+          <div class="form-group" style="flex: 3;">
+            <label for="field-label">Nom du comportement</label>
+            <input type="text" id="field-label" placeholder="ex. Méditation, Pompes, Café" required>
+          </div>
+          <div class="form-group" style="flex: 1; max-width: 90px;">
+            <label for="field-emoji">Émoji</label>
+            <input type="text" id="field-emoji" placeholder="ex. 🧴" maxlength="4">
+          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -735,6 +768,7 @@
     const formTitle = document.getElementById('form-title');
     const fieldId = document.getElementById('field-id');
     const fieldLabel = document.getElementById('field-label');
+    const fieldEmoji = document.getElementById('field-emoji');
     const fieldDomain = document.getElementById('field-domain');
     const fieldMode = document.getElementById('field-mode');
     const fieldUnit = document.getElementById('field-unit');
@@ -749,9 +783,15 @@
     const btnCancel = document.getElementById('btn-cancel');
 
     const streakCard = document.getElementById('streak-card');
+    const streakIcon = document.getElementById('streak-icon');
     const streakLabel = document.getElementById('streak-label');
     const streakCounter = document.getElementById('streak-counter');
     const DEFAULT_STREAK_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime();
+
+    const retroForm = document.getElementById('retro-form');
+    const retroBehaviorSelect = document.getElementById('retro-behavior-select');
+    const retroDatetime = document.getElementById('retro-datetime');
+    const retroVal = document.getElementById('retro-val');
 
     const STORAGE_KEY = 'behavior_logs';
     const CATALOGUE_KEY = 'behavior_catalogue';
@@ -767,6 +807,7 @@
       {
         id: "comportement_a",
         label: "Café",
+        emoji: "☕",
         domain: "consommation",
         mode: "instant",
         unit: "tasse",
@@ -777,6 +818,7 @@
       {
         id: "comportement_b",
         label: "Méditation",
+        emoji: "🧘",
         domain: "sante",
         mode: "timer",
         unit: "min",
@@ -787,6 +829,7 @@
       {
         id: "comportement_c",
         label: "Marche active",
+        emoji: "🚶",
         domain: "sport",
         mode: "instant",
         unit: "min",
@@ -841,12 +884,16 @@
       const catalogue = getCatalogue();
       const linked = catalogue.filter(c => c.domain.toLowerCase() === domainToDelete);
       if (linked.length > 0) {
-        alert(`Impossible de supprimer « ${domainToDelete} » : ${linked.length} comportement(s) y sont rattachés.`);
-        return;
+        const confirmCascade = confirm(`Attention : le domaine « ${domainToDelete} » contient ${linked.length} comportement(s).\n\nSupprimer ce domaine ET TOUS les comportements associés ?`);
+        if (!confirmCascade) return;
+        saveCatalogue(catalogue.filter(c => c.domain.toLowerCase() !== domainToDelete));
+        const timers = getActiveTimers();
+        linked.forEach(c => { delete timers[c.id]; });
+        saveActiveTimers(timers);
+      } else {
+        if (!confirm(`Supprimer le domaine « ${domainToDelete} » ?`)) return;
       }
-      if (!confirm(`Supprimer le domaine « ${domainToDelete} » ?`)) return;
-      let domains = getDomains().filter(d => d !== domainToDelete);
-      saveDomains(domains);
+      saveDomains(getDomains().filter(d => d !== domainToDelete));
       if (selectedDomainFilter === domainToDelete) selectedDomainFilter = 'all';
       refreshAllUI();
     }
@@ -855,7 +902,6 @@
       const domains = getDomains().sort();
       const catalogue = getCatalogue();
 
-      // Mémoriser les accordéons déjà ouverts
       const openDomains = new Set();
       document.querySelectorAll('#domains-tree-container details.domain-accordion[open]').forEach(el => {
         if (el.dataset.domain) openDomains.add(el.dataset.domain);
@@ -887,18 +933,15 @@
             <span class="domain-badge-count">${countText}</span>
           </div>
           <div class="domain-summary-right">
-            ${linked.length === 0 ? `<button class="btn-domain-delete-sm" data-domain="${dom}">Supprimer</button>` : ''}
+            <button class="btn-domain-delete-sm" data-domain="${dom}" title="Supprimer le domaine">Suppr.</button>
             <span class="domain-chevron">▼</span>
           </div>
         `;
 
-        const delBtn = summary.querySelector('.btn-domain-delete-sm');
-        if (delBtn) {
-          delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteDomain(dom);
-          });
-        }
+        summary.querySelector('.btn-domain-delete-sm').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteDomain(dom);
+        });
 
         const body = document.createElement('div');
         body.className = 'domain-accordion-body';
@@ -909,9 +952,10 @@
           linked.forEach(item => {
             const row = document.createElement('div');
             row.className = 'admin-item';
+            const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
             row.innerHTML = `
               <div class="admin-item-info">
-                <span class="admin-item-name">${item.label}</span>
+                <span class="admin-item-name">${emojiPrefix}${item.label}</span>
                 <span class="admin-item-meta">${item.mode === 'timer' ? '⏱ Chrono' : '⚡ Clic'} (${item.unit})</span>
               </div>
               <div class="admin-item-actions">
@@ -974,6 +1018,7 @@
     function resetForm() {
       behaviorForm.reset();
       fieldId.value = '';
+      fieldEmoji.value = '';
       fieldMode.value = 'instant';
       fieldPhase.value = 'baseline';
       fieldUnitSelect.value = 'min';
@@ -988,6 +1033,7 @@
       if (!item) return;
       fieldId.value = item.id;
       fieldLabel.value = item.label;
+      fieldEmoji.value = item.emoji || '';
       renderDomainSelect(item.domain.toLowerCase());
       fieldMode.value = item.mode || 'instant';
       if (fieldMode.value === 'timer') {
@@ -1027,6 +1073,7 @@
       const behaviorData = {
         id: editingId || 'beh_' + Date.now().toString(36),
         label: fieldLabel.value.trim(),
+        emoji: fieldEmoji.value.trim() || null,
         domain: fieldDomain.value.trim().toLowerCase(),
         mode: fieldMode.value,
         unit: chosenUnit,
@@ -1115,6 +1162,7 @@
       }
 
       streakCard.style.display = 'flex';
+      streakIcon.textContent = targetItem.emoji || '⏳';
       streakLabel.textContent = targetItem.label;
 
       const events = getStoredEvents().filter(e => e.action === targetItem.id || (e.domain === targetItem.domain && e.action === targetItem.label));
@@ -1211,10 +1259,12 @@
           actionsHtml = `<button class="btn-action-touch instant" data-id="${item.id}">+${defVal}</button>`;
         }
 
+        const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
+
         row.innerHTML = `
           <div class="row-left">
             <div class="row-title-line">
-              <span class="row-label">${item.label}</span>
+              <span class="row-label">${emojiPrefix}${item.label}</span>
               <span class="row-domain-tag">${item.domain}</span>
             </div>
             <div class="row-subtext">${subtextHtml}</div>
@@ -1260,7 +1310,7 @@
     function createEvent(params = {}) {
       return {
         id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        timestamp: new Date().toISOString(),
+        timestamp: params.timestamp || new Date().toISOString(),
         synced: false,
         v: 1,
         domain: String(params.domain || 'general').trim().toLowerCase(),
@@ -1290,21 +1340,23 @@
       const catalogue = getCatalogue();
       counterDisplay.textContent = `${events.length} enregistrement${events.length > 1 ? 's' : ''}`;
       historyList.innerHTML = '';
-      const recent = [...events].reverse().slice(0, 10);
+      const recent = [...events].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
       if (recent.length === 0) {
         historyList.innerHTML = '<li style="color: #888; font-size: 0.85rem; padding: 4px;">Aucun passage consigné.</li>';
         return;
       }
-      const map = new Map(catalogue.map(c => [c.id, c.label]));
+      const mapItem = new Map(catalogue.map(c => [c.id, c]));
       recent.forEach(item => {
         const li = document.createElement('li');
         li.className = 'event-item';
         const badge = item.synced ? '<span class="badge-synced">Synchronisé</span>' : '<span class="badge-pending">En attente</span>';
-        const label = map.get(item.action) || item.action.toUpperCase();
+        const cObj = mapItem.get(item.action);
+        const emojiPrefix = cObj && cObj.emoji ? `${cObj.emoji} ` : '';
+        const label = cObj ? cObj.label : item.action.toUpperCase();
         const det = item.value !== null && item.value !== undefined ? ` (+${item.value} ${item.unit || ''})`.trim() : '';
         li.innerHTML = `
           <div class="event-info">
-            <span class="event-action">${label} <span style="font-weight:normal; color:#475569;">${det}</span></span>
+            <span class="event-action">${emojiPrefix}${label} <span style="font-weight:normal; color:#475569;">${det}</span></span>
             <span class="event-meta">${formatDate(item.timestamp)}</span>
           </div>
           ${badge}
@@ -1330,6 +1382,62 @@
       updateSyncIconUI();
       updateStreakDisplay();
     }
+
+    function setRetroNow() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      retroDatetime.value = now.toISOString().slice(0, 16);
+    }
+
+    function updateRetroDefaultVal() {
+      const catalogue = getCatalogue();
+      const item = catalogue.find(c => c.id === retroBehaviorSelect.value);
+      if (item) {
+        retroVal.value = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : 1;
+      }
+    }
+
+    function renderRetroBehaviorSelect() {
+      const catalogue = getCatalogue();
+      retroBehaviorSelect.innerHTML = '';
+      if (catalogue.length === 0) return;
+      catalogue.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
+        opt.textContent = `${emojiPrefix}${item.label} [${item.domain}] (${item.unit})`;
+        retroBehaviorSelect.appendChild(opt);
+      });
+      updateRetroDefaultVal();
+    }
+
+    retroBehaviorSelect.addEventListener('change', updateRetroDefaultVal);
+
+    retroForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const targetId = retroBehaviorSelect.value;
+      const item = getCatalogue().find(c => c.id === targetId);
+      if (!item) return;
+
+      const chosenDate = new Date(retroDatetime.value);
+      if (isNaN(chosenDate.getTime())) {
+        alert('Date ou heure invalide');
+        return;
+      }
+
+      const val = Number(retroVal.value);
+      logEvent({
+        domain: item.domain,
+        action: item.id,
+        value: isNaN(val) ? (item.defaultValue ?? 1) : val,
+        unit: item.unit,
+        timestamp: chosenDate.toISOString(),
+        notes: 'Saisie différée'
+      });
+
+      alert(`Passage consigné au ${chosenDate.toLocaleDateString('fr-FR')} à ${chosenDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.`);
+      setRetroNow();
+    });
 
     async function syncData() {
       const ev = getStoredEvents();
@@ -1455,6 +1563,7 @@
     function refreshAllUI() {
       renderCatalogueTree();
       renderDomainSelect();
+      renderRetroBehaviorSelect();
       renderCategoryBar();
       renderDashboard();
       renderHistory();
@@ -1472,6 +1581,7 @@
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.error('Erreur SW :', err));
       }
+      setRetroNow();
       refreshAllUI();
       setInterval(updateStreakDisplay, 60000);
 
