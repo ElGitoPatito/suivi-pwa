@@ -43,6 +43,16 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .btn-burger:active { background: #f1f5f9; }
+    .header-center-title {
+      flex-grow: 1;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .category-scroll-container {
       display: flex;
       gap: 6px;
@@ -182,9 +192,57 @@
     .view-content { display: none; width: 100%; max-width: 480px; }
     .view-content.active { display: flex; flex-direction: column; align-items: center; }
 
-    header { width: 100%; text-align: left; margin-bottom: 10px; padding: 0 4px; }
+    header.view-header { width: 100%; text-align: left; margin-bottom: 12px; padding: 0 4px; }
     h1 { font-size: 1.15rem; margin: 0; color: #0f172a; }
-    #counter { font-size: 0.8rem; color: #64748b; }
+    .header-subtext { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+    /* DASHBOARD SPÉCIFIQUE */
+    .dashboard-section-title {
+      width: 100%;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #334155;
+      margin: 12px 0 8px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #active-timers-container { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .live-timer-card {
+      width: 100%;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-left: 4px solid #16a34a;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .live-timer-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .live-timer-emoji { font-size: 1.25rem; }
+    .live-timer-text { display: flex; flex-direction: column; min-width: 0; }
+    .live-timer-label { font-weight: 700; font-size: 0.88rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .live-timer-domain { font-size: 0.68rem; font-weight: 600; color: #16a34a; text-transform: uppercase; }
+    .live-timer-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .live-timer-display { font-family: monospace; font-weight: 700; font-size: 0.95rem; color: #16a34a; letter-spacing: 0.02em; }
+    .btn-live-stop { background: #dc2626; color: white; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    .btn-live-stop:active { background: #b91c1c; }
+    .btn-live-cancel { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .btn-live-cancel:active { background: #e2e8f0; }
+
+    .empty-state-box {
+      width: 100%;
+      background: white;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
 
     .streak-banner {
       width: 100%;
@@ -193,7 +251,7 @@
       border-left: 4px solid #2563eb;
       border-radius: 10px;
       padding: 10px 14px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -210,6 +268,20 @@
       letter-spacing: 0.02em;
     }
 
+    #today-summary-list { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .summary-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .summary-card-left { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #1e293b; }
+    .summary-card-right { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+
+    /* RANGÉES LOOP DE SAISIE RAPIDE */
     #dashboard-tiles {
       width: 100%;
       display: flex;
@@ -317,7 +389,7 @@
     .btn-action-touch.timer-cancel { min-width: 38px; height: 44px; padding: 0 8px; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; font-size: 0.85rem; font-weight: 600; }
     .btn-action-touch.timer-cancel:active { background: #e2e8f0; }
 
-    /* MODALE DE SAISIE CONTEXTUELLE */
+    /* MODALE DE RATTRAPAGE DIRECT */
     .retro-modal-overlay {
       position: fixed;
       top: 0;
@@ -343,11 +415,6 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      animation: modalFadeIn 0.15s ease-out;
-    }
-    @keyframes modalFadeIn {
-      from { transform: scale(0.96); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
     }
     .retro-modal-header {
       display: flex;
@@ -356,19 +423,8 @@
       border-bottom: 1px solid #f1f5f9;
       padding-bottom: 8px;
     }
-    .retro-modal-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #1e293b;
-    }
-    .btn-close-modal {
-      background: transparent;
-      border: none;
-      font-size: 1.3rem;
-      color: #64748b;
-      cursor: pointer;
-      line-height: 1;
-    }
+    .retro-modal-title { font-weight: 700; font-size: 0.95rem; color: #1e293b; }
+    .btn-close-modal { background: transparent; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer; line-height: 1; }
 
     section#history-section, section#retro-section { width: 100%; margin-top: 8px; }
     details.history-accordion { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
@@ -419,7 +475,7 @@
     button.btn-primary:active { background: #1d4ed8; }
     button.btn-secondary { flex: 1; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-    /* ACCORDÉONS DES DOMAINES */
+    /* ACCORDÉONS DU CATALOGUE */
     #domains-tree-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
     details.domain-accordion {
       background: white;
@@ -445,62 +501,20 @@
     .domain-summary-left { display: flex; align-items: center; gap: 10px; }
     .domain-color-pill { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
     .domain-title-text { font-weight: 700; font-size: 0.92rem; color: #1e293b; }
-    .domain-badge-count {
-      font-size: 0.72rem;
-      color: #64748b;
-      font-weight: 600;
-      background: #f1f5f9;
-      padding: 2px 8px;
-      border-radius: 12px;
-    }
+    .domain-badge-count { font-size: 0.72rem; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
     .domain-summary-right { display: flex; align-items: center; gap: 8px; }
     .domain-chevron { font-size: 0.72rem; color: #94a3b8; transition: transform 0.2s ease; }
     details.domain-accordion[open] .domain-chevron { transform: rotate(180deg); }
-    .btn-domain-delete-sm {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
-      color: #e11d48;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .domain-accordion-body {
-      padding: 10px 12px 14px 12px;
-      background: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .admin-item {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .btn-domain-delete-sm { background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+    .domain-accordion-body { padding: 10px 12px 14px 12px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px; }
+    .admin-item { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
     .admin-item-info { display: flex; flex-direction: column; gap: 2px; }
     .admin-item-name { font-weight: 600; font-size: 0.88rem; color: #1e293b; }
     .admin-item-meta { font-size: 0.74rem; color: #64748b; }
     .admin-item-actions { display: flex; gap: 6px; }
     .btn-item-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
     .btn-item-delete { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
-    .btn-domain-add-beh {
-      background: white;
-      border: 1px dashed #cbd5e1;
-      color: #2563eb;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      margin-top: 4px;
-    }
+    .btn-domain-add-beh { background: white; border: 1px dashed #cbd5e1; color: #2563eb; padding: 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-align: center; margin-top: 4px; }
     .btn-domain-add-beh:active { background: #eff6ff; }
 
     .sub-nav { display: flex; width: 100%; background: #e2e8f0; border-radius: 8px; padding: 3px; margin-bottom: 16px; gap: 4px; }
@@ -521,6 +535,7 @@
 
   <div class="top-header-bar">
     <button class="btn-burger" id="burger-open-btn" aria-label="Menu principal">☰</button>
+    <div class="header-center-title" id="header-center-title" style="display:none;">Tableau de bord</div>
     <div class="category-scroll-container" id="category-bar"></div>
     <button class="btn-sync-icon" id="sync-btn" aria-label="Synchronisation Cloud" title="Synchroniser">☁️</button>
   </div>
@@ -532,7 +547,8 @@
       <button class="btn-close-drawer" id="burger-close-btn">&times;</button>
     </div>
     <div class="drawer-nav">
-      <button class="drawer-item active" data-view="view-app">📊 Suivi d'activité</button>
+      <button class="drawer-item active" data-view="view-dashboard">📈 Tableau de bord</button>
+      <button class="drawer-item" data-view="view-app">📊 Suivi d'activité</button>
       <button class="drawer-item" data-view="view-catalogue">⚙️ Catalogue des habitudes</button>
       <button class="drawer-item" data-view="view-doc">📖 Protocole & Relais</button>
     </div>
@@ -544,7 +560,7 @@
     </div>
   </aside>
 
-  <!-- MODALE CONTEXTUELLE DE RATTRAPAGE -->
+  <!-- MODALE CONTEXTUELLE DE RATTRAPAGE DIRECT -->
   <div class="retro-modal-overlay" id="retro-modal-overlay">
     <div class="retro-modal-card">
       <div class="retro-modal-header">
@@ -569,19 +585,35 @@
     </div>
   </div>
 
-  <main id="view-app" class="view-content active">
-    <header>
+  <!-- VUE 1 : NOUVEAU TABLEAU DE BORD (COCKPIT CENTRAL) -->
+  <main id="view-dashboard" class="view-content active">
+    <header class="view-header">
       <h1>Tableau de bord</h1>
-      <div id="counter">0 enregistrement</div>
+      <div class="header-subtext" id="dashboard-date-display">Pilotage et synthèse quotidienne</div>
     </header>
 
-    <div id="streak-card" class="streak-banner" style="display: none;">
+    <div class="dashboard-section-title">⏱ Sessions en cours</div>
+    <div id="active-timers-container"></div>
+
+    <div class="dashboard-section-title">⏳ Continuité & Engagement</div>
+    <div id="dashboard-streak-card" class="streak-banner" style="display: none;">
       <div class="streak-info">
-        <span class="streak-icon" id="streak-icon">⏳</span>
-        <span class="streak-label" id="streak-label">Continuité</span>
+        <span class="streak-icon" id="dashboard-streak-icon">⏳</span>
+        <span class="streak-label" id="dashboard-streak-label">Continuité</span>
       </div>
-      <div class="streak-counter" id="streak-counter">0 j 00 h 00 min</div>
+      <div class="streak-counter" id="dashboard-streak-counter">0 j 00 h 00 min</div>
     </div>
+
+    <div class="dashboard-section-title">📊 Synthèse du jour</div>
+    <div id="today-summary-list"></div>
+  </main>
+
+  <!-- VUE 2 : SUIVI D'ACTIVITÉ (SAISIE RAPIDE LOOP) -->
+  <section id="view-app" class="view-content">
+    <header class="view-header">
+      <h1>Suivi d'activité</h1>
+      <div class="header-subtext" id="counter">0 enregistrement</div>
+    </header>
 
     <div id="dashboard-tiles"></div>
 
@@ -620,8 +652,9 @@
         </form>
       </details>
     </section>
-  </main>
+  </section>
 
+  <!-- VUE 3 : CATALOGUE DES HABITUDES -->
   <section id="view-catalogue" class="view-content">
     <div class="admin-card">
       <h2>Créer un domaine</h2>
@@ -720,6 +753,7 @@
     </div>
   </section>
 
+  <!-- VUE 4 : PROTOCOLE & RELAIS -->
   <section id="view-doc" class="view-content">
     <div class="doc-container">
       <nav class="sub-nav">
@@ -729,29 +763,29 @@
       <div id="sub-tuto" class="sub-tab-content active">
         <div class="doc-step">
           <h3>1. Mental Model du Relais Cloud</h3>
-          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>. Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span).</p>
+          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span). Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span).</p>
         </div>
         <div class="doc-step">
           <h3>2. La règle absolue : Navigation Privée</h3>
           <div class="doc-warning">
-            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span). Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span).
+            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span). Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span).
           </div>
         </div>
         <div class="doc-step">
           <h3>3. Procédure de déploiement d'une version</h3>
           <p>Pour modifier le script sans casser l'URL Web de la PWA :</p>
-          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer)[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span).</p>
-          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span).</p>
-          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif[span_10](start_span)[span_10](end_span)[span_11](start_span)[span_11](end_span).</p>
-          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span).</p>
-          <p>5. Cliquer sur <strong>Déployer</strong>. L'adresse se terminant par <code>/exec</code> reste identique[span_14](start_span)[span_14](end_span)[span_15](start_span)[span_15](end_span).</p>
+          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer)[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span).</p>
+          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>[span_10](start_span)[span_10](end_span)[span_11](start_span)[span_11](end_span).</p>
+          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span).</p>
+          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>[span_14](start_span)[span_14](end_span)[span_15](start_span)[span_15](end_span).</p>
+          <p>5. Cliquer sur <strong>Déployer</strong>. L'adresse se terminant par <code>/exec</code> reste identique[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span).</p>
         </div>
       </div>
       <div id="sub-arch" class="sub-tab-content">
         <div class="doc-step">
           <h3>1. Structure du tableur Google Sheets (8 colonnes)</h3>
           <p>Sur la ligne 1 de la feuille active, définir rigoureusement :</p>
-          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span)
+          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>[span_18](start_span)[span_18](end_span)[span_19](start_span)[span_19](end_span)
         </div>
         <div class="doc-step">
           <h3>2. Code Apps Script récepteur (Code.gs)</h3>
@@ -789,7 +823,7 @@
         </div>
       </div>
       <div class="doc-footer">
-        Fiche technique embarquée • Suivi comportemental autonome[span_18](start_span)[span_18](end_span)[span_19](start_span)[span_19](end_span)
+        Fiche technique embarquée • Suivi comportemental autonome[span_20](start_span)[span_20](end_span)[span_21](start_span)[span_21](end_span)
       </div>
     </div>
   </section>
@@ -808,6 +842,7 @@
     const drawerOverlay = document.getElementById('drawer-overlay');
     const drawerItems = document.querySelectorAll('.drawer-item');
     const viewContents = document.querySelectorAll('.view-content');
+    const headerCenterTitle = document.getElementById('header-center-title');
 
     function openDrawer() { drawer.classList.add('open'); drawerOverlay.classList.add('open'); }
     function closeDrawer() { drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
@@ -816,14 +851,31 @@
     burgerCloseBtn.addEventListener('click', closeDrawer);
     drawerOverlay.addEventListener('click', closeDrawer);
 
-    drawerItems.forEach(item => {
-      item.addEventListener('click', () => {
-        drawerItems.forEach(b => b.classList.remove('active'));
-        viewContents.forEach(v => v.classList.remove('active'));
-        item.classList.add('active');
-        document.getElementById(item.dataset.view).classList.add('active');
-        closeDrawer();
+    function switchView(targetViewId) {
+      drawerItems.forEach(b => {
+        b.classList.toggle('active', b.dataset.view === targetViewId);
       });
+      viewContents.forEach(v => {
+        v.classList.toggle('active', v.id === targetViewId);
+      });
+
+      // Adaptation dynamique du centre de l'en-tête
+      if (targetViewId === 'view-app') {
+        categoryBar.style.display = 'flex';
+        headerCenterTitle.style.display = 'none';
+      } else {
+        categoryBar.style.display = 'none';
+        headerCenterTitle.style.display = 'block';
+        if (targetViewId === 'view-dashboard') headerCenterTitle.textContent = 'Tableau de bord';
+        else if (targetViewId === 'view-catalogue') headerCenterTitle.textContent = 'Catalogue';
+        else if (targetViewId === 'view-doc') headerCenterTitle.textContent = 'Protocole';
+      }
+      closeDrawer();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    drawerItems.forEach(item => {
+      item.addEventListener('click', () => switchView(item.dataset.view));
     });
 
     const subTabButtons = document.querySelectorAll('.sub-tab-btn');
@@ -870,10 +922,14 @@
     const fieldFinal = document.getElementById('field-final');
     const btnCancel = document.getElementById('btn-cancel');
 
-    const streakCard = document.getElementById('streak-card');
-    const streakIcon = document.getElementById('streak-icon');
-    const streakLabel = document.getElementById('streak-label');
-    const streakCounter = document.getElementById('streak-counter');
+    /* TABLEAU DE BORD ÉLÉMENTS */
+    const activeTimersContainer = document.getElementById('active-timers-container');
+    const dashboardStreakCard = document.getElementById('dashboard-streak-card');
+    const dashboardStreakIcon = document.getElementById('dashboard-streak-icon');
+    const dashboardStreakLabel = document.getElementById('dashboard-streak-label');
+    const dashboardStreakCounter = document.getElementById('dashboard-streak-counter');
+    const todaySummaryList = document.getElementById('today-summary-list');
+    const dashboardDateDisplay = document.getElementById('dashboard-date-display');
     const DEFAULT_STREAK_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime();
 
     const retroForm = document.getElementById('retro-form');
@@ -881,7 +937,7 @@
     const retroDatetime = document.getElementById('retro-datetime');
     const retroVal = document.getElementById('retro-val');
 
-    /* MODALE CONTEXTUELLE */
+    /* MODALE CONTEXTUELLE DE RATTRAPAGE DIRECT */
     const retroModalOverlay = document.getElementById('retro-modal-overlay');
     const retroModalClose = document.getElementById('retro-modal-close');
     const rowRetroForm = document.getElementById('row-retro-form');
@@ -1203,11 +1259,11 @@
       const timers = getActiveTimers();
       timers[id] = Date.now();
       saveActiveTimers(timers);
-      renderDashboard();
+      refreshAllUI();
     }
     function cancelTimer(id) {
       const timers = getActiveTimers();
-      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); renderDashboard(); }
+      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); refreshAllUI(); }
     }
     function stopTimer(id) {
       const timers = getActiveTimers();
@@ -1231,7 +1287,7 @@
       delete timers[id];
       saveActiveTimers(timers);
       logEvent({ domain: item.domain, action: item.id, value: val, unit: item.unit, notes: note });
-      renderDashboard();
+      refreshAllUI();
     }
 
     function updateActiveTimerDisplays() {
@@ -1251,37 +1307,116 @@
       });
     }
 
-    function updateStreakDisplay() {
+    /* RENDU DU TABLEAU DE BORD (COCKPIT CENTRAL) */
+    function renderDashboardView() {
       const catalogue = getCatalogue();
-      const targetItem = catalogue.find(c => c.trackElapsed === true);
+      const events = getStoredEvents();
+      const activeTimers = getActiveTimers();
+      const activeIds = Object.keys(activeTimers);
 
-      if (!targetItem) {
-        streakCard.style.display = 'none';
-        return;
+      // 1. Sessions chronométrées actives (Variante A)
+      activeTimersContainer.innerHTML = '';
+      if (activeIds.length === 0) {
+        activeTimersContainer.innerHTML = '<div class="empty-state-box">⏱ Aucun chronomètre actif en ce moment.</div>';
+      } else {
+        activeIds.forEach(id => {
+          const item = catalogue.find(c => c.id === id);
+          if (!item) return;
+          const card = document.createElement('div');
+          card.className = 'live-timer-card';
+          const emojiIcon = item.emoji || '⏱';
+          card.innerHTML = `
+            <div class="live-timer-left">
+              <span class="live-timer-emoji">${emojiIcon}</span>
+              <div class="live-timer-text">
+                <span class="live-timer-label">${item.label}</span>
+                <span class="live-timer-domain">${item.domain}</span>
+              </div>
+            </div>
+            <div class="live-timer-right">
+              <span class="live-timer-display timer-display-live" data-behavior-id="${item.id}">00:00</span>
+              <button class="btn-live-stop" data-id="${item.id}">⏹ Stop</button>
+              <button class="btn-live-cancel" data-id="${item.id}" title="Annuler">✕</button>
+            </div>
+          `;
+          card.querySelector('.btn-live-stop').addEventListener('click', () => stopTimer(item.id));
+          card.querySelector('.btn-live-cancel').addEventListener('click', () => cancelTimer(item.id));
+          activeTimersContainer.appendChild(card);
+        });
       }
 
-      streakCard.style.display = 'flex';
-      streakIcon.textContent = targetItem.emoji || '⏳';
-      streakLabel.textContent = targetItem.label;
+      // 2. Décompte d'abstinence / continuité (Streak)
+      const targetStreakItem = catalogue.find(c => c.trackElapsed === true);
+      if (!targetStreakItem) {
+        dashboardStreakCard.style.display = 'none';
+      } else {
+        dashboardStreakCard.style.display = 'flex';
+        dashboardStreakIcon.textContent = targetStreakItem.emoji || '⏳';
+        dashboardStreakLabel.textContent = targetStreakItem.label;
 
-      const events = getStoredEvents().filter(e => e.action === targetItem.id || (e.domain === targetItem.domain && e.action === targetItem.label));
+        const streakEvents = events.filter(e => e.action === targetStreakItem.id || (e.domain === targetStreakItem.domain && e.action === targetStreakItem.label));
+        let lastTimestamp = DEFAULT_STREAK_EPOCH;
+        if (streakEvents.length > 0) {
+          const timestamps = streakEvents.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
+          if (timestamps.length > 0) lastTimestamp = Math.max(...timestamps);
+        }
 
-      let lastTimestamp = DEFAULT_STREAK_EPOCH;
-      if (events.length > 0) {
-        const timestamps = events.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
-        if (timestamps.length > 0) lastTimestamp = Math.max(...timestamps);
+        const elapsedMs = Math.max(0, Date.now() - lastTimestamp);
+        const totalSec = Math.floor(elapsedMs / 1000);
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const mins = Math.floor((totalSec % 3600) / 60);
+        const pad = n => String(n).padStart(2, '0');
+
+        dashboardStreakCounter.textContent = days > 0
+          ? `${days} j ${pad(hours)} h ${pad(mins)} min`
+          : `${pad(hours)} h ${pad(mins)} min`;
       }
 
-      const elapsedMs = Math.max(0, Date.now() - lastTimestamp);
-      const totalSec = Math.floor(elapsedMs / 1000);
-      const days = Math.floor(totalSec / 86400);
-      const hours = Math.floor((totalSec % 86400) / 3600);
-      const mins = Math.floor((totalSec % 3600) / 60);
-      const pad = n => String(n).padStart(2, '0');
+      // 3. Synthèse des habitudes du jour
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayStartTime = todayStart.getTime();
 
-      streakCounter.textContent = days > 0
-        ? `${days} j ${pad(hours)} h ${pad(mins)} min`
-        : `${pad(hours)} h ${pad(mins)} min`;
+      todaySummaryList.innerHTML = '';
+      if (catalogue.length === 0) {
+        todaySummaryList.innerHTML = '<div class="empty-state-box">Aucun comportement configuré.</div>';
+      } else {
+        catalogue.forEach(item => {
+          const todaySum = events
+            .filter(e => (e.action === item.id || (e.domain === item.domain && e.action === item.label)) && new Date(e.timestamp).getTime() >= todayStartTime)
+            .reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
+          const formattedSum = Number.isInteger(todaySum) ? todaySum : todaySum.toFixed(2);
+          const isBaseline = (item.phase || 'baseline') === 'baseline';
+
+          let statusText = '';
+          if (isBaseline) {
+            statusText = `${formattedSum} ${item.unit} (obs)`;
+          } else {
+            const step = (item.target && item.target.currentStep !== null) ? item.target.currentStep : null;
+            const dir = item.target ? item.target.direction : 'increase';
+            if (step !== null) {
+              const ok = dir === 'decrease' ? todaySum <= step : todaySum >= step;
+              const color = ok ? '#16a34a' : (dir === 'decrease' ? '#dc2626' : '#64748b');
+              statusText = `<span style="color:${color};">${formattedSum} / ${step} ${item.unit}</span>`;
+            } else {
+              statusText = `${formattedSum} ${item.unit}`;
+            }
+          }
+
+          const div = document.createElement('div');
+          div.className = 'summary-card';
+          const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
+          div.innerHTML = `
+            <div class="summary-card-left">
+              <span style="width:8px; height:8px; border-radius:50%; background:${getDomainColor(item.domain)};"></span>
+              <span>${emojiPrefix}${item.label}</span>
+            </div>
+            <div class="summary-card-right">${statusText}</div>
+          `;
+          todaySummaryList.appendChild(div);
+        });
+      }
     }
 
     function renderCategoryBar() {
@@ -1290,19 +1425,19 @@
       const all = document.createElement('button');
       all.className = `cat-chip ${selectedDomainFilter === 'all' ? 'active' : ''}`;
       all.textContent = 'Tous';
-      all.addEventListener('click', () => { selectedDomainFilter = 'all'; renderCategoryBar(); renderDashboard(); });
+      all.addEventListener('click', () => { selectedDomainFilter = 'all'; renderCategoryBar(); renderActionRows(); });
       categoryBar.appendChild(all);
 
       domains.forEach(dom => {
         const chip = document.createElement('button');
         chip.className = `cat-chip ${selectedDomainFilter === dom ? 'active' : ''}`;
         chip.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-        chip.addEventListener('click', () => { selectedDomainFilter = dom; renderCategoryBar(); renderDashboard(); });
+        chip.addEventListener('click', () => { selectedDomainFilter = dom; renderCategoryBar(); renderActionRows(); });
         categoryBar.appendChild(chip);
       });
     }
 
-    /* GESTION DE LA MODALE CONTEXTUELLE DE RATTRAPAGE */
+    /* GESTION DE LA MODALE CONTEXTUELLE DE RATTRAPAGE DIRECT */
     function openRowRetroModal(behaviorId) {
       const item = getCatalogue().find(c => c.id === behaviorId);
       if (!item) return;
@@ -1360,7 +1495,8 @@
       closeRowRetroModal();
     });
 
-    function renderDashboard() {
+    /* RENDU DES RANGÉES LOOP DE SAISIE RAPIDE (VUE SUIVI) */
+    function renderActionRows() {
       const catalogue = getCatalogue();
       const events = getStoredEvents();
       const activeTimers = getActiveTimers();
@@ -1461,12 +1597,12 @@
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         updateActiveTimerDisplays();
-        updateStreakDisplay();
+        renderDashboardView();
       }
     });
     window.addEventListener('focus', () => {
       updateActiveTimerDisplays();
-      updateStreakDisplay();
+      renderDashboardView();
     });
 
     function createEvent(params = {}) {
@@ -1539,10 +1675,7 @@
       const ev = getStoredEvents();
       ev.push(entry);
       saveEvents(ev);
-      renderDashboard();
-      renderHistory();
-      updateSyncIconUI();
-      updateStreakDisplay();
+      refreshAllUI();
     }
 
     function setRetroNow() {
@@ -1723,14 +1856,14 @@
     }
 
     function refreshAllUI() {
+      renderDashboardView();
       renderCatalogueTree();
       renderDomainSelect();
       renderRetroBehaviorSelect();
       renderCategoryBar();
-      renderDashboard();
+      renderActionRows();
       renderHistory();
       updateSyncIconUI();
-      updateStreakDisplay();
     }
 
     syncButton.addEventListener('click', syncData);
@@ -1745,7 +1878,7 @@
       }
       setRetroNow();
       refreshAllUI();
-      setInterval(updateStreakDisplay, 60000);
+      setInterval(renderDashboardView, 60000);
 
       const p = new URLSearchParams(window.location.search);
       if (p.get('action') === 'quick_log') {
