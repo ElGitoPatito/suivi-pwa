@@ -199,17 +199,9 @@
       justify-content: space-between;
       box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .streak-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .streak-info { display: flex; align-items: center; gap: 8px; }
     .streak-icon { font-size: 1.1rem; }
-    .streak-label {
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #1e293b;
-    }
+    .streak-label { font-weight: 700; font-size: 0.85rem; color: #1e293b; }
     .streak-counter {
       font-family: monospace;
       font-weight: 700;
@@ -351,7 +343,7 @@
     .badge-pending { font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
     .badge-synced { font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
 
-    .admin-card { width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .admin-card { width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
     .admin-card h2 { margin: 0; font-size: 1rem; color: #1e293b; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-row { display: flex; gap: 10px; }
@@ -364,14 +356,89 @@
     button.btn-primary:active { background: #1d4ed8; }
     button.btn-secondary { flex: 1; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-    .admin-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-    .admin-item { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+    /* ACCORDÉONS DES DOMAINES */
+    #domains-tree-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    details.domain-accordion {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    details.domain-accordion[open] { border-color: #cbd5e1; }
+    summary.domain-summary {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      -webkit-tap-highlight-color: transparent;
+      background: white;
+    }
+    summary.domain-summary::-webkit-details-marker { display: none; }
+    details.domain-accordion[open] summary.domain-summary { border-bottom: 1px solid #f1f5f9; }
+    .domain-summary-left { display: flex; align-items: center; gap: 10px; }
+    .domain-color-pill { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .domain-title-text { font-weight: 700; font-size: 0.92rem; color: #1e293b; }
+    .domain-badge-count {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-weight: 600;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .domain-summary-right { display: flex; align-items: center; gap: 8px; }
+    .domain-chevron { font-size: 0.72rem; color: #94a3b8; transition: transform 0.2s ease; }
+    details.domain-accordion[open] .domain-chevron { transform: rotate(180deg); }
+    .btn-domain-delete-sm {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #e11d48;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .domain-accordion-body {
+      padding: 10px 12px 14px 12px;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .admin-item {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     .admin-item-info { display: flex; flex-direction: column; gap: 2px; }
-    .admin-item-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
-    .admin-item-meta { font-size: 0.75rem; color: #64748b; }
+    .admin-item-name { font-weight: 600; font-size: 0.88rem; color: #1e293b; }
+    .admin-item-meta { font-size: 0.74rem; color: #64748b; }
     .admin-item-actions { display: flex; gap: 6px; }
-    .btn-item-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-    .btn-item-delete { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .btn-item-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
+    .btn-item-delete { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
+    .btn-domain-add-beh {
+      background: white;
+      border: 1px dashed #cbd5e1;
+      color: #2563eb;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .btn-domain-add-beh:active { background: #eff6ff; }
 
     .sub-nav { display: flex; width: 100%; background: #e2e8f0; border-radius: 8px; padding: 3px; margin-bottom: 16px; gap: 4px; }
     .sub-tab-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 600; font-size: 0.8rem; color: #64748b; border-radius: 6px; cursor: pointer; text-align: center; }
@@ -404,7 +471,6 @@
     <div class="drawer-nav">
       <button class="drawer-item active" data-view="view-app">📊 Suivi d'activité</button>
       <button class="drawer-item" data-view="view-catalogue">⚙️ Catalogue des habitudes</button>
-      <button class="drawer-item" data-view="view-domains">🏷 Domaines & Thématiques</button>
       <button class="drawer-item" data-view="view-doc">📖 Protocole & Relais</button>
     </div>
     <div class="drawer-footer">
@@ -443,6 +509,23 @@
 
   <section id="view-catalogue" class="view-content">
     <div class="admin-card">
+      <h2>Créer un domaine</h2>
+      <form id="domain-form">
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <input type="text" id="new-domain-input" placeholder="ex. sommeil, nutrition, travail" required>
+          </div>
+          <button type="submit" class="btn-primary" style="flex:1; padding: 10px;">+ Ajouter</button>
+        </div>
+      </form>
+    </div>
+
+    <div style="width:100%; margin-bottom: 8px;">
+      <h2 style="font-size: 1rem; color: #1e293b; margin: 4px 0 10px 4px;">Domaines et habitudes</h2>
+    </div>
+    <div id="domains-tree-container"></div>
+
+    <div class="admin-card" id="card-behavior-form">
       <h2 id="form-title">Ajouter un comportement</h2>
       <form id="behavior-form">
         <input type="hidden" id="field-id">
@@ -513,29 +596,6 @@
           <button type="button" class="btn-secondary" id="btn-cancel" style="display:none;">Annuler</button>
         </div>
       </form>
-    </div>
-    <div class="admin-card">
-      <h2>Comportements configurés</h2>
-      <div class="admin-list" id="admin-behavior-list"></div>
-    </div>
-  </section>
-
-  <section id="view-domains" class="view-content">
-    <div class="admin-card">
-      <h2>Créer un domaine</h2>
-      <form id="domain-form">
-        <div class="form-group">
-          <label for="new-domain-input">Nom de la thématique</label>
-          <input type="text" id="new-domain-input" placeholder="ex. sommeil, nutrition, travail" required>
-        </div>
-        <div class="form-actions" style="margin-top: 8px;">
-          <button type="submit" class="btn-primary">Ajouter le domaine</button>
-        </div>
-      </form>
-    </div>
-    <div class="admin-card">
-      <h2>Domaines configurés</h2>
-      <div class="admin-list" id="domains-list"></div>
     </div>
   </section>
 
@@ -665,9 +725,12 @@
     const importBackupInput = document.getElementById('import-backup-input');
     const resetAppBtn = document.getElementById('reset-app-btn');
     const dashboardTiles = document.getElementById('dashboard-tiles');
+
     const domainForm = document.getElementById('domain-form');
     const newDomainInput = document.getElementById('new-domain-input');
-    const domainsList = document.getElementById('domains-list');
+    const domainsTreeContainer = document.getElementById('domains-tree-container');
+    const cardBehaviorForm = document.getElementById('card-behavior-form');
+
     const behaviorForm = document.getElementById('behavior-form');
     const formTitle = document.getElementById('form-title');
     const fieldId = document.getElementById('field-id');
@@ -684,7 +747,6 @@
     const fieldStep = document.getElementById('field-step');
     const fieldFinal = document.getElementById('field-final');
     const btnCancel = document.getElementById('btn-cancel');
-    const adminBehaviorList = document.getElementById('admin-behavior-list');
 
     const streakCard = document.getElementById('streak-card');
     const streakLabel = document.getElementById('streak-label');
@@ -789,31 +851,100 @@
       refreshAllUI();
     }
 
-    function renderDomainsAdmin() {
-      const domains = getDomains();
+    function renderCatalogueTree() {
+      const domains = getDomains().sort();
       const catalogue = getCatalogue();
-      domainsList.innerHTML = '';
-      if (domains.length === 0) { domainsList.innerHTML = '<div style="font-size:0.85rem; color:#888;">Aucun domaine.</div>'; return; }
+
+      // Mémoriser les accordéons déjà ouverts
+      const openDomains = new Set();
+      document.querySelectorAll('#domains-tree-container details.domain-accordion[open]').forEach(el => {
+        if (el.dataset.domain) openDomains.add(el.dataset.domain);
+      });
+
+      domainsTreeContainer.innerHTML = '';
+      if (domains.length === 0) {
+        domainsTreeContainer.innerHTML = '<div style="font-size:0.85rem; color:#888; padding: 8px;">Aucun domaine configuré.</div>';
+        return;
+      }
+
       domains.forEach(dom => {
-        const count = catalogue.filter(c => c.domain.toLowerCase() === dom).length;
-        const div = document.createElement('div');
-        div.className = 'admin-item';
-        div.innerHTML = `
-          <div class="admin-item-info">
-            <span class="admin-item-name">${dom.charAt(0).toUpperCase() + dom.slice(1)}</span>
-            <span class="admin-item-meta">${count} comportement${count > 1 ? 's' : ''}</span>
+        const linked = catalogue.filter(c => c.domain.toLowerCase() === dom);
+        const details = document.createElement('details');
+        details.className = 'domain-accordion';
+        details.dataset.domain = dom;
+        if (openDomains.has(dom)) details.open = true;
+
+        const summary = document.createElement('summary');
+        summary.className = 'domain-summary';
+
+        const colorPill = `<span class="domain-color-pill" style="background:${getDomainColor(dom)};"></span>`;
+        const countText = `${linked.length} habitude${linked.length > 1 ? 's' : ''}`;
+
+        summary.innerHTML = `
+          <div class="domain-summary-left">
+            ${colorPill}
+            <span class="domain-title-text">${dom.charAt(0).toUpperCase() + dom.slice(1)}</span>
+            <span class="domain-badge-count">${countText}</span>
           </div>
-          <div class="admin-item-actions">
-            <button class="btn-item-delete" data-domain="${dom}">Suppr.</button>
+          <div class="domain-summary-right">
+            ${linked.length === 0 ? `<button class="btn-domain-delete-sm" data-domain="${dom}">Supprimer</button>` : ''}
+            <span class="domain-chevron">▼</span>
           </div>
         `;
-        div.querySelector('.btn-item-delete').addEventListener('click', () => deleteDomain(dom));
-        domainsList.appendChild(div);
+
+        const delBtn = summary.querySelector('.btn-domain-delete-sm');
+        if (delBtn) {
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteDomain(dom);
+          });
+        }
+
+        const body = document.createElement('div');
+        body.className = 'domain-accordion-body';
+
+        if (linked.length === 0) {
+          body.innerHTML = '<div style="font-size:0.8rem; color:#94a3b8; padding: 4px;">Aucun comportement dans ce domaine.</div>';
+        } else {
+          linked.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'admin-item';
+            row.innerHTML = `
+              <div class="admin-item-info">
+                <span class="admin-item-name">${item.label}</span>
+                <span class="admin-item-meta">${item.mode === 'timer' ? '⏱ Chrono' : '⚡ Clic'} (${item.unit})</span>
+              </div>
+              <div class="admin-item-actions">
+                <button class="btn-item-edit" data-id="${item.id}">Éditer</button>
+                <button class="btn-item-delete" data-id="${item.id}">Suppr.</button>
+              </div>
+            `;
+            row.querySelector('.btn-item-edit').addEventListener('click', () => loadBehaviorInForm(item.id));
+            row.querySelector('.btn-item-delete').addEventListener('click', () => deleteBehavior(item.id));
+            body.appendChild(row);
+          });
+        }
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn-domain-add-beh';
+        addBtn.textContent = `+ Ajouter un comportement dans ${dom.charAt(0).toUpperCase() + dom.slice(1)}`;
+        addBtn.addEventListener('click', () => {
+          resetForm();
+          fieldDomain.value = dom;
+          formTitle.textContent = `Ajouter dans « ${dom.charAt(0).toUpperCase() + dom.slice(1)} »`;
+          cardBehaviorForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          fieldLabel.focus();
+        });
+        body.appendChild(addBtn);
+
+        details.appendChild(summary);
+        details.appendChild(body);
+        domainsTreeContainer.appendChild(details);
       });
     }
 
     function renderDomainSelect(selectedVal = '') {
-      const domains = getDomains();
+      const domains = getDomains().sort();
       fieldDomain.innerHTML = '';
       domains.forEach(dom => {
         const opt = document.createElement('option');
@@ -874,8 +1005,7 @@
       formTitle.textContent = `Modifier : ${item.label}`;
       btnCancel.style.display = 'inline-block';
       updateFormModeUI();
-      document.querySelector('[data-view="view-catalogue"]').click();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      cardBehaviorForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function deleteBehavior(id) {
@@ -922,29 +1052,6 @@
       refreshAllUI();
     });
     btnCancel.addEventListener('click', resetForm);
-
-    function renderCatalogueAdmin() {
-      const catalogue = getCatalogue();
-      adminBehaviorList.innerHTML = '';
-      if (catalogue.length === 0) { adminBehaviorList.innerHTML = '<div style="font-size:0.85rem; color:#888;">Aucun comportement.</div>'; return; }
-      catalogue.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'admin-item';
-        div.innerHTML = `
-          <div class="admin-item-info">
-            <span class="admin-item-name">${item.label}</span>
-            <span class="admin-item-meta">${item.domain} • ${item.mode === 'timer' ? '⏱ Chrono' : '⚡ Clic'} (${item.unit})</span>
-          </div>
-          <div class="admin-item-actions">
-            <button class="btn-item-edit" data-id="${item.id}">Éditer</button>
-            <button class="btn-item-delete" data-id="${item.id}">Suppr.</button>
-          </div>
-        `;
-        div.querySelector('.btn-item-edit').addEventListener('click', () => loadBehaviorInForm(item.id));
-        div.querySelector('.btn-item-delete').addEventListener('click', () => deleteBehavior(item.id));
-        adminBehaviorList.appendChild(div);
-      });
-    }
 
     function startTimer(id) {
       const timers = getActiveTimers();
@@ -1346,11 +1453,10 @@
     }
 
     function refreshAllUI() {
-      renderDomainsAdmin();
+      renderCatalogueTree();
       renderDomainSelect();
       renderCategoryBar();
       renderDashboard();
-      renderCatalogueAdmin();
       renderHistory();
       updateSyncIconUI();
       updateStreakDisplay();
