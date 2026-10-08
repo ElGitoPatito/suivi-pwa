@@ -207,6 +207,13 @@
     .domain-accordion summary { padding: 10px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: var(--bg); text-transform: capitalize; }
     .cat-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 0.85rem; }
 
+    /* Encadré d'aide au calcul baseline */
+    .baseline-helper-card {
+      background: var(--primary-light); border: 1px solid #bfdbfe;
+      border-radius: 8px; padding: 10px 12px; display: flex;
+      align-items: center; justify-content: space-between; gap: 8px;
+    }
+
     /* Utilitaires */
     .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); height: 38px; border-radius: 8px; font-weight: 600; padding: 0 12px; cursor: pointer; }
     .btn-primary { background: var(--primary); border: none; color: white; height: 38px; border-radius: 8px; font-weight: 700; padding: 0 14px; cursor: pointer; }
@@ -341,16 +348,32 @@
               <option value="timer">Chronomètre (Durée)</option>
             </select>
             <input type="text" id="cat-unit" placeholder="Unité (min, tasse, fois)">
+            <input type="number" id="cat-default-val" placeholder="Valeur défaut" style="max-width:110px;" step="any">
           </div>
           <div style="display:flex; gap:8px;">
             <select id="cat-phase">
               <option value="baseline">Observation (Baseline neutre)</option>
               <option value="target">Intervention (Paliers cibles)</option>
             </select>
-            <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600;">
-              <input type="checkbox" id="cat-track-elapsed"> Suivi streak
+            <select id="cat-direction">
+              <option value="increase">Développement (Plancher)</option>
+              <option value="decrease">Réduction (Plafond)</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; white-space:nowrap;">
+              <input type="checkbox" id="cat-track-elapsed"> Streak
             </label>
           </div>
+
+          <!-- Encadré contextuel d'aide au calcul baseline -->
+          <div id="cat-baseline-helper" class="baseline-helper-card" style="display:none;"></div>
+
+          <!-- Paliers cliniques TCC -->
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="cat-baseline" placeholder="Baseline (départ)" step="any">
+            <input type="number" id="cat-step" placeholder="Palier actif" step="any">
+            <input type="number" id="cat-final" placeholder="Cible finale" step="any">
+          </div>
+
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
             <button class="btn-secondary" id="cat-cancel-btn" style="display:none;">Annuler</button>
             <button class="btn-primary" id="cat-save-btn">Enregistrer</button>
@@ -380,8 +403,8 @@
       <div class="card">
         <div class="card-title">Relais & Architecture souveraine</div>
         <div style="font-size:0.82rem; color:var(--text-muted); display:flex; flex-direction:column; gap:8px;">
-          <p>• <strong>Écriture aveugle (Write-only) :</strong> transmission par requêtes HTTPS POST (doPost) vers le Google Apps Script connecté à votre tableur à 8 colonnes.</p>
-          <p>• <strong>Étanchéité totale :</strong> aucune donnée personnelle n'est stockée sur GitHub Pages. Les données réelles sont confinées localement dans votre navigateur.</p>
+          <p>• <strong>Écriture aveugle (Write-only) :</strong> transmission par requêtes HTTPS POST (doPost) vers le Google Apps Script connecté à votre tableur à 8 colonnes[span_2](start_span)[span_2](end_span).</p>
+          <p>• <strong>Étanchéité totale :</strong> aucune donnée personnelle n'est stockée sur GitHub Pages[span_3](start_span)[span_3](end_span). Les données réelles sont confinées localement dans votre navigateur[span_4](start_span)[span_4](end_span).</p>
           <p>• <strong>Phase 3 (Raspberry Pi) :</strong> rapatriement autonome programmé sans ouverture de ports entrants.</p>
         </div>
       </div>
@@ -411,8 +434,8 @@
        ========================================================= */
     const DEFAULT_DOMAINS = ['consommation', 'sante', 'sport'];
     const DEFAULT_CATALOGUE = [
-      { id: 'cafe', label: 'Café', emoji: '☕', domain: 'consommation', mode: 'instant', unit: 'tasse', defaultValue: 1, phase: 'baseline', trackElapsed: true },
-      { id: 'meditation', label: 'Méditation', emoji: '🧘', domain: 'sante', mode: 'timer', unit: 'min', defaultValue: 15, phase: 'baseline' },
+      { id: 'cafe', label: 'Café', emoji: '☕', domain: 'consommation', mode: 'instant', unit: 'tasse', defaultValue: 1, phase: 'baseline', trackElapsed: true, target: { direction: 'decrease', period: 'jour', baseline: null, currentStep: null, finalTarget: null } },
+      { id: 'meditation', label: 'Méditation', emoji: '🧘', domain: 'sante', mode: 'timer', unit: 'min', defaultValue: 15, phase: 'baseline', target: { direction: 'increase', period: 'jour', baseline: null, currentStep: null, finalTarget: null } },
       { id: 'marche', label: 'Marche active', emoji: '🚶', domain: 'sport', mode: 'timer', unit: 'min', defaultValue: 30, phase: 'target', target: { direction: 'increase', period: 'jour', baseline: 0, currentStep: 30, finalTarget: 60 } }
     ];
     const DEFAULT_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime(); // 1er octobre 2026
@@ -760,7 +783,6 @@
         const s = elapsedSec % 60;
         const currentFormatted = `${m} min ${String(s).padStart(2, '0')} s`;
 
-        // Recherche du record de durée passé dans behavior_logs
         let maxPastMs = 0;
         let hasPastLogs = false;
 
@@ -774,7 +796,6 @@
           }
         });
 
-        // Affichage dynamique du record ou de l'alerte de dépassement
         let recordBadge = '';
         if (!hasPastLogs) {
           recordBadge = '<span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Record : 1ʳᵉ session</span>';
@@ -1017,8 +1038,58 @@
     };
 
     /* =========================================================
-       GESTION DU CATALOGUE (ACCORDÉONS & FORMULAIRE)
+       GESTION DU CATALOGUE (ACCORDÉONS & BASELINE HELPER)
        ========================================================= */
+    function updateBaselineHelper(behaviorId) {
+      const helperBox = document.getElementById('cat-baseline-helper');
+      if (!behaviorId) {
+        helperBox.style.display = 'none';
+        return;
+      }
+
+      const cat = getCatalogue();
+      const item = cat.find(c => c.id === behaviorId);
+      if (!item) {
+        helperBox.style.display = 'none';
+        return;
+      }
+
+      const events = getStoredEvents().filter(e => e.action === behaviorId && Number(e.value) > 0);
+      if (events.length === 0) {
+        helperBox.style.display = 'block';
+        helperBox.innerHTML = '<span style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">ℹ️ Aucun historique enregistré pour calculer la baseline.</span>';
+        return;
+      }
+
+      const timestamps = events.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
+      const minTs = Math.min(...timestamps);
+      const maxTs = Math.max(...timestamps);
+      const daysObserved = Math.max(1, Math.round((maxTs - minTs) / 86400000) + 1);
+      const totalVal = events.reduce((acc, cur) => acc + Number(cur.value || 0), 0);
+      const avgVal = Math.round((totalVal / daysObserved) * 10) / 10;
+
+      let avgFormatted = `${avgVal} ${item.unit || ''}`;
+      if (item.mode === 'timer') {
+        const totalMin = item.unit === 'h' ? avgVal * 60 : (item.unit === 'sec' ? avgVal / 60 : avgVal);
+        const h = Math.floor(totalMin / 60);
+        const m = Math.round(totalMin % 60);
+        avgFormatted = h > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`;
+      }
+
+      helperBox.style.display = 'flex';
+      helperBox.innerHTML = `
+        <div style="flex:1; font-size:0.78rem; font-weight:600;">
+          📊 Observation : <strong>${avgFormatted}/j</strong> <span style="color:var(--text-muted); font-weight:500;">(${daysObserved} j, ${events.length} faits)</span>
+        </div>
+        <button type="button" class="btn-secondary" style="height:28px; padding:0 10px; font-size:0.75rem; font-weight:700; background:var(--surface); color:var(--primary); border-color:var(--primary);" id="btn-apply-baseline">Appliquer</button>
+      `;
+
+      document.getElementById('btn-apply-baseline').onclick = () => {
+        document.getElementById('cat-baseline').value = avgVal;
+        document.getElementById('cat-phase').value = 'target';
+      };
+    }
+
     function renderCatalogueUI() {
       const container = document.getElementById('catalogue-accordions-container');
       container.innerHTML = '';
@@ -1072,9 +1143,16 @@
       document.getElementById('cat-domain').value = item.domain;
       document.getElementById('cat-mode').value = item.mode;
       document.getElementById('cat-unit').value = item.unit || '';
+      document.getElementById('cat-default-val').value = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : '';
       document.getElementById('cat-phase').value = item.phase || 'baseline';
+      document.getElementById('cat-direction').value = (item.target && item.target.direction) ? item.target.direction : 'increase';
+      document.getElementById('cat-baseline').value = (item.target && item.target.baseline !== null && item.target.baseline !== undefined) ? item.target.baseline : '';
+      document.getElementById('cat-step').value = (item.target && item.target.currentStep !== null && item.target.currentStep !== undefined) ? item.target.currentStep : '';
+      document.getElementById('cat-final').value = (item.target && item.target.finalTarget !== null && item.target.finalTarget !== undefined) ? item.target.finalTarget : '';
       document.getElementById('cat-track-elapsed').checked = Boolean(item.trackElapsed);
       document.getElementById('cat-cancel-btn').style.display = 'inline-block';
+
+      updateBaselineHelper(id);
     }
 
     function deleteBehavior(id) {
@@ -1091,7 +1169,12 @@
       document.getElementById('cat-label').value = '';
       document.getElementById('cat-emoji').value = '';
       document.getElementById('cat-unit').value = '';
+      document.getElementById('cat-default-val').value = '';
+      document.getElementById('cat-baseline').value = '';
+      document.getElementById('cat-step').value = '';
+      document.getElementById('cat-final').value = '';
       document.getElementById('cat-cancel-btn').style.display = 'none';
+      updateBaselineHelper(null);
     };
 
     document.getElementById('cat-save-btn').onclick = () => {
@@ -1100,17 +1183,40 @@
       const domain = document.getElementById('cat-domain').value;
       const mode = document.getElementById('cat-mode').value;
       const unit = document.getElementById('cat-unit').value.trim();
+      const defVal = document.getElementById('cat-default-val').value;
       const phase = document.getElementById('cat-phase').value;
+      const direction = document.getElementById('cat-direction').value;
+      const baseline = document.getElementById('cat-baseline').value;
+      const step = document.getElementById('cat-step').value;
+      const finalVal = document.getElementById('cat-final').value;
       const trackElapsed = document.getElementById('cat-track-elapsed').checked;
 
       if (!label) return;
 
       let catalogue = getCatalogue();
+      const targetObj = {
+        direction: direction,
+        period: 'jour',
+        baseline: baseline !== '' ? Number(baseline) : null,
+        currentStep: step !== '' ? Number(step) : null,
+        finalTarget: finalVal !== '' ? Number(finalVal) : null
+      };
 
       if (editingBehaviorId) {
         catalogue = catalogue.map(c => {
           if (c.id === editingBehaviorId) {
-            return { ...c, label, emoji, domain, mode, unit, phase, trackElapsed };
+            return {
+              ...c,
+              label,
+              emoji,
+              domain,
+              mode,
+              unit,
+              defaultValue: defVal !== '' ? Number(defVal) : (mode === 'instant' ? 1 : null),
+              phase,
+              trackElapsed,
+              target: targetObj
+            };
           }
           return c;
         });
@@ -1124,9 +1230,10 @@
           domain,
           mode,
           unit,
-          defaultValue: mode === 'instant' ? 1 : null,
+          defaultValue: defVal !== '' ? Number(defVal) : (mode === 'instant' ? 1 : null),
           phase,
-          trackElapsed
+          trackElapsed,
+          target: targetObj
         });
       }
 
@@ -1172,7 +1279,7 @@
       const catalogue = getCatalogue();
       const isUsed = catalogue.some(c => c.domain === domain);
       if (isUsed) {
-        alert(`Impossible de supprimer le domaine "${domain}" : il est utilisé par des comportements existants.`);
+        alert(`Impossible de supprimer le domaine « ${domain} » : il est utilisé par des comportements existants.`);
         return;
       }
       let domains = getDomains();
@@ -1323,4 +1430,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
