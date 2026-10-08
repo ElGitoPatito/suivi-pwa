@@ -95,7 +95,7 @@
     }
     .active-timer-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 4px 0; font-size: 0.85rem; font-weight: 600;
+      padding: 6px 0; font-size: 0.85rem; font-weight: 600;
     }
 
     /* Cartes & Tuiles Loop (58px) */
@@ -245,9 +245,9 @@
   <main>
     <!-- 1. VUE TABLEAU DE BORD -->
     <section id="view-dashboard" class="view-panel active">
-      <!-- Bandeau chronos actifs -->
+      <!-- Bandeau chronos actifs avec affichage du record -->
       <div id="active-timers-banner" class="active-timers-card" style="display:none;">
-        <div style="font-size:0.75rem; font-weight:700; color:#065f46; margin-bottom:4px;">CHRONOMÈTRES ACTIFS</div>
+        <div style="font-size:0.75rem; font-weight:700; color:#065f46; margin-bottom:6px;">CHRONOMÈTRES ACTIFS</div>
         <div id="active-timers-list"></div>
       </div>
 
@@ -534,7 +534,7 @@
       const item = cat.find(c => c.id === actionId);
       const elapsedMs = Math.max(0, Date.now() - startMs);
       
-      let durationVal = elapsedMs / 60000; // minutes décimales par défaut
+      let durationVal = elapsedMs / 60000;
       let unit = 'min';
       if (item && item.unit === 'h') {
         durationVal = elapsedMs / 3600000;
@@ -572,12 +572,10 @@
       const timers = getActiveTimers();
       const events = getStoredEvents();
 
-      // Filtrage par domaine
       const items = currentFilterDomain === 'all' 
         ? catalogue 
         : catalogue.filter(c => c.domain === currentFilterDomain);
 
-      // Calcul des cumuls du jour (depuis minuit local)
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const startOfDayMs = startOfDay.getTime();
@@ -734,6 +732,83 @@
     }
 
     /* =========================================================
+       BANDEAU CHRONOMÈTRES ACTIFS & RECORD PERSONNEL (PR)
+       ========================================================= */
+    function renderActiveTimersBanner() {
+      const banner = document.getElementById('active-timers-banner');
+      const list = document.getElementById('active-timers-list');
+      const timers = getActiveTimers();
+      const catalogue = getCatalogue();
+      const events = getStoredEvents();
+      const keys = Object.keys(timers);
+
+      if (keys.length === 0) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      banner.style.display = 'block';
+      list.innerHTML = '';
+
+      keys.forEach((k, idx) => {
+        const item = catalogue.find(c => c.id === k);
+        const label = item ? item.label : k;
+        const emoji = (item && item.emoji) ? item.emoji + ' ' : '';
+        const elapsedMs = Math.max(0, Date.now() - timers[k]);
+        const elapsedSec = Math.floor(elapsedMs / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        const currentFormatted = `${m} min ${String(s).padStart(2, '0')} s`;
+
+        // Recherche du record de durée passé dans behavior_logs
+        let maxPastMs = 0;
+        let hasPastLogs = false;
+
+        events.forEach(e => {
+          if (e.action === k && Number(e.value) > 0) {
+            hasPastLogs = true;
+            let logMs = Number(e.value) * 60000;
+            if (e.unit === 'h') logMs = Number(e.value) * 3600000;
+            else if (e.unit === 'sec') logMs = Number(e.value) * 1000;
+            if (logMs > maxPastMs) maxPastMs = logMs;
+          }
+        });
+
+        // Affichage dynamique du record ou de l'alerte de dépassement
+        let recordBadge = '';
+        if (!hasPastLogs) {
+          recordBadge = '<span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Record : 1ʳᵉ session</span>';
+        } else if (elapsedMs >= maxPastMs) {
+          recordBadge = '<span style="font-size:0.75rem; color:#065f46; font-weight:800; background:#a7f3d0; padding:2px 6px; border-radius:4px;">Nouveau record ! 🔥</span>';
+        } else {
+          const recMin = Math.floor(maxPastMs / 60000);
+          const recSec = Math.floor((maxPastMs % 60000) / 1000);
+          let recFormatted = '';
+          if (recMin >= 60) {
+            const rh = Math.floor(recMin / 60);
+            const rm = recMin % 60;
+            recFormatted = `${rh} h ${String(rm).padStart(2, '0')} min`;
+          } else {
+            recFormatted = recSec > 0 ? `${recMin} min ${String(recSec).padStart(2, '0')} s` : `${recMin} min`;
+          }
+          recordBadge = `<span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Record : <strong>${recFormatted}</strong></span>`;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'active-timer-row';
+        if (idx > 0) row.style.borderTop = '1px solid rgba(16, 185, 129, 0.25)';
+        row.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <span><strong>${emoji}${label}</strong> : <span style="font-family:monospace; color:var(--primary); font-weight:700;">${currentFormatted}</span></span>
+            <div>${recordBadge}</div>
+          </div>
+          <button class="btn-action btn-timer-stop" style="height:32px; padding:0 10px; font-size:0.75rem;" onclick="stopTimer('${k}')">Arrêter</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    /* =========================================================
        STATISTIQUES MENSUELLES (DIVISEUR SUR JOURS ÉCOULÉS)
        ========================================================= */
     function renderMonthlyStats() {
@@ -752,7 +827,6 @@
       const isCurrentMonth = (now.getFullYear() === year && now.getMonth() === monthIndex);
       const totalDaysInMonth = new Date(year, monthIndex + 1, 0).getDate();
       
-      // Règle ergonomique : diviseur fixé aux jours réels écoulés
       const daysDivisor = isCurrentMonth 
         ? Math.max(1, Math.min(now.getDate(), totalDaysInMonth))
         : totalDaysInMonth;
@@ -797,7 +871,6 @@
        ========================================================= */
     function render24hMatrix() {
       const container = document.getElementById('matrix-days-container');
-      // Conserver les 3 repères verticaux fixes (12h, 18h, 00h)
       container.innerHTML = `
         <div class="matrix-grid-guides">
           <div class="grid-line l-12h"></div>
@@ -824,7 +897,6 @@
       const MS_IN_24H = 86400000;
 
       for (let day = 1; day <= totalDaysInMonth; day++) {
-        // Fenêtre circadienne : Jour J à 07:00:00 jusqu'à Jour J+1 à 07:00:00
         const winStart = new Date(year, monthIndex, day, 7, 0, 0, 0).getTime();
         const winEnd = winStart + MS_IN_24H;
 
@@ -839,18 +911,13 @@
         const track = document.createElement('div');
         track.className = 'matrix-track';
 
-        // Filtrage des événements chevauchant cette fenêtre circadienne
         events.forEach(evt => {
           const item = catalogue.find(c => c.id === evt.action);
           if (!item || item.mode !== 'timer') return;
 
-          // Filtre par domaine
           if (domainFilter !== 'all' && item.domain !== domainFilter) return;
-
-          // Filtre par comportement
           if (behaviorFilter !== 'all_timers' && item.id !== behaviorFilter) return;
 
-          // Calcul des millisecondes réelles
           let durMs = Number(evt.value || 0) * 60000;
           if (evt.unit === 'h') durMs = Number(evt.value || 0) * 3600000;
           if (evt.unit === 'sec') durMs = Number(evt.value || 0) * 1000;
@@ -858,7 +925,6 @@
           const endTime = new Date(evt.timestamp).getTime();
           const startTime = endTime - durMs;
 
-          // Test de chevauchement sur la plage de 24 heures
           if (Math.max(startTime, winStart) < Math.min(endTime, winEnd)) {
             const segStart = Math.max(startTime, winStart);
             const segEnd = Math.min(endTime, winEnd);
@@ -872,7 +938,6 @@
             block.style.width = `${widthPct}%`;
             block.style.backgroundColor = getDomainColor(item.domain);
 
-            // Données tactiles du bloc
             const startStr = new Date(startTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const endStr = new Date(endTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const durMin = Math.round(durMs / 60000);
@@ -894,7 +959,6 @@
       }
     }
 
-    /* Synchronisation des filtres de la matrice */
     function syncMatrixFilterSelectors() {
       const domainSelect = document.getElementById('matrix-domain-filter');
       const behaviorSelect = document.getElementById('matrix-behavior-filter');
@@ -925,7 +989,6 @@
       document.getElementById('retro-value').value = item.defaultValue || 1;
       document.getElementById('retro-notes').value = '';
 
-      // Format datetime-local par défaut sur l'instant présent
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       document.getElementById('retro-datetime').value = now.toISOString().slice(0, 16);
@@ -987,7 +1050,6 @@
         container.appendChild(details);
       });
 
-      // Synchronisation du select domaine du formulaire
       const catDomainSelect = document.getElementById('cat-domain');
       catDomainSelect.innerHTML = '';
       domains.forEach(d => {
@@ -1139,7 +1201,6 @@
         container.appendChild(pill);
       });
 
-      // Synchronisation du select pour les stats mensuelles
       const statsDomainSelect = document.getElementById('stats-domain-filter');
       statsDomainSelect.innerHTML = '<option value="all">Tous les domaines</option>';
       getDomains().forEach(d => {
@@ -1149,7 +1210,6 @@
         statsDomainSelect.appendChild(opt);
       });
 
-      // Synchronisation du select pour la matrice 24h
       const matrixDomainSelect = document.getElementById('matrix-domain-filter');
       matrixDomainSelect.innerHTML = '<option value="all">Tous les domaines</option>';
       getDomains().forEach(d => {
@@ -1157,38 +1217,6 @@
         opt.value = d;
         opt.textContent = d;
         matrixDomainSelect.appendChild(opt);
-      });
-    }
-
-    function renderActiveTimersBanner() {
-      const banner = document.getElementById('active-timers-banner');
-      const list = document.getElementById('active-timers-list');
-      const timers = getActiveTimers();
-      const catalogue = getCatalogue();
-      const keys = Object.keys(timers);
-
-      if (keys.length === 0) {
-        banner.style.display = 'none';
-        return;
-      }
-
-      banner.style.display = 'block';
-      list.innerHTML = '';
-
-      keys.forEach(k => {
-        const item = catalogue.find(c => c.id === k);
-        const label = item ? item.label : k;
-        const elapsedSec = Math.floor((Date.now() - timers[k]) / 1000);
-        const m = Math.floor(elapsedSec / 60);
-        const s = elapsedSec % 60;
-
-        const row = document.createElement('div');
-        row.className = 'active-timer-row';
-        row.innerHTML = `
-          <span>${label} (${m} min ${String(s).padStart(2, '0')} s)</span>
-          <button class="btn-action btn-timer-stop" style="height:28px; padding:0 8px; font-size:0.75rem;" onclick="stopTimer('${k}')">Arrêter</button>
-        `;
-        list.appendChild(row);
       });
     }
 
@@ -1264,12 +1292,10 @@
     }
 
     window.addEventListener('load', () => {
-      // Enregistrement du Service Worker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration error:', err));
       }
 
-      // Initialisation du mois par défaut au mois courant (ex: 2026-10)
       const now = new Date();
       const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       document.getElementById('stats-month-selector').value = currentMonthStr;
@@ -1277,7 +1303,6 @@
       initNavigation();
       refreshAllUI();
 
-      // Écouteurs pour actualiser les graphiques et tableaux
       document.getElementById('stats-month-selector').addEventListener('change', () => {
         renderMonthlyStats();
         render24hMatrix();
@@ -1289,7 +1314,6 @@
       });
       document.getElementById('matrix-behavior-filter').addEventListener('change', render24hMatrix);
 
-      // Rafraîchissement régulier des chronomètres et streaks (1 seconde / 1 minute)
       setInterval(() => {
         renderActiveTimersBanner();
         if (Object.keys(getActiveTimers()).length > 0) renderLoopUI();
