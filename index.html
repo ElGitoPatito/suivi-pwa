@@ -2,2354 +2,1300 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Suivi Comportemental</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
-  <title>Suivi Comportemental TCC</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 12px 14px 24px 14px;
-      background: #f4f4f9;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .top-header-bar {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      max-width: 480px;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .btn-burger {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      width: 42px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3rem;
-      color: #1e293b;
-      cursor: pointer;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .btn-burger:active { background: #f1f5f9; }
-    .header-center-title {
-      flex-grow: 1;
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #1e293b;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .category-scroll-container {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 2px 0;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      flex-grow: 1;
-    }
-    .category-scroll-container::-webkit-scrollbar { display: none; }
-    .cat-chip {
-      background: white;
-      border: 1px solid #cbd5e1;
-      color: #475569;
-      padding: 8px 14px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 20px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.15s ease, color 0.15s ease;
-    }
-    .cat-chip.active {
-      background: #2563eb;
-      color: white;
-      border-color: #2563eb;
-      box-shadow: 0 2px 4px rgba(37,99,235,0.2);
-    }
-    .btn-sync-icon {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      width: 42px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      cursor: pointer;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      transition: background 0.15s ease, border-color 0.15s ease;
-    }
-    .btn-sync-icon:active { background: #f1f5f9; }
-    .btn-sync-icon.pending { border-color: #f59e0b; background: #fffbeb; }
-    .btn-sync-icon.syncing { opacity: 0.6; }
-
-    /* BULLES DE RACCOURCIS */
-    .shortcut-scroll-container {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 2px 2px 10px 2px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      width: 100%;
-      max-width: 480px;
-    }
-    .shortcut-scroll-container::-webkit-scrollbar { display: none; }
-    .shortcut-bubble {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: 2px solid white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.35rem;
-      cursor: pointer;
-      flex-shrink: 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform 0.1s ease;
-    }
-    .shortcut-bubble:active { transform: scale(0.92); }
-    .shortcut-bubble.running {
-      outline: 3px solid #16a34a;
-      outline-offset: 2px;
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --warning: #f59e0b;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --radius: 10px;
     }
 
-    .drawer-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.4; padding-bottom: 24px; }
+
+    /* En-tête supérieur */
+    header {
+      position: sticky; top: 0; z-index: 40;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      height: 52px; padding: 0 12px; gap: 8px;
     }
-    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
-    .drawer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 280px;
-      height: 100vh;
-      background: white;
-      z-index: 201;
-      transform: translateX(-100%);
-      transition: transform 0.25s ease;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+    .btn-icon {
+      background: none; border: none; font-size: 1.3rem;
+      cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
     }
-    .drawer.open { transform: translateX(0); }
-    .drawer-header {
-      padding: 20px;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .btn-icon:active { background: var(--border); }
+    .nav-domains-scroll {
+      display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+      padding: 4px 0; flex: 1;
     }
-    .drawer-title { font-weight: 700; font-size: 1.1rem; color: #1e293b; }
-    .btn-close-drawer { background: transparent; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer; }
-    .drawer-nav { display: flex; flex-direction: column; padding: 12px; gap: 6px; flex-grow: 1; }
+    .nav-domains-scroll::-webkit-scrollbar { display: none; }
+    .domain-pill {
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-muted); font-size: 0.78rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 999px; white-space: nowrap; cursor: pointer; text-transform: capitalize;
+    }
+    .domain-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Tiroir coulissant (Drawer) */
+    #drawer {
+      position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+      background: var(--surface); z-index: 100; box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+      transition: left 0.25s ease; display: flex; flex-direction: column;
+    }
+    #drawer.open { left: 0; }
+    #drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99;
+      display: none;
+    }
+    #drawer-overlay.open { display: block; }
+    .drawer-header { padding: 18px 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.05rem; }
+    .drawer-menu { list-style: none; padding: 12px 8px; flex: 1; }
     .drawer-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #334155;
-      cursor: pointer;
-      text-align: left;
+      padding: 12px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+      color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
     }
-    .drawer-item:active, .drawer-item.active { background: #eff6ff; color: #2563eb; }
-    .drawer-footer {
-      padding: 16px;
-      border-top: 1px solid #e2e8f0;
-      background: #fafafa;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .btn-drawer-action {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      color: #1e293b;
-      padding: 11px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-    }
-    .btn-drawer-action:active { background: #e2e8f0; }
-    button#reset-app-btn {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
-      color: #e11d48;
-      padding: 11px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-    }
-    button#reset-app-btn:active { background: #ffe4e6; }
+    .drawer-item.active { background: var(--primary-light); color: var(--primary); }
+    .drawer-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
 
-    .view-content { display: none; width: 100%; max-width: 480px; }
-    .view-content.active { display: flex; flex-direction: column; align-items: center; }
+    /* Conteneur principal */
+    main { padding: 12px; max-width: 680px; margin: 0 auto; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
 
-    header.view-header { width: 100%; text-align: left; margin-bottom: 10px; padding: 0 4px; }
-    h1 { font-size: 1.15rem; margin: 0; color: #0f172a; }
-    .header-subtext { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
-
-    .dashboard-section-title {
-      width: 100%;
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #334155;
-      margin: 14px 0 6px 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    #active-timers-container { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-    .live-timer-card {
-      width: 100%;
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      border-left: 4px solid #16a34a;
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-    .live-timer-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .live-timer-emoji { font-size: 1.25rem; }
-    .live-timer-text { display: flex; flex-direction: column; min-width: 0; }
-    .live-timer-label { font-weight: 700; font-size: 0.88rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .live-timer-domain { font-size: 0.68rem; font-weight: 600; color: #16a34a; text-transform: uppercase; }
-    .live-timer-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .live-timer-display { font-family: monospace; font-weight: 700; font-size: 0.95rem; color: #16a34a; letter-spacing: 0.02em; }
-    .btn-live-stop { background: #dc2626; color: white; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-    .btn-live-stop:active { background: #b91c1c; }
-    .btn-live-cancel { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
-    .btn-live-cancel:active { background: #e2e8f0; }
-
-    .empty-state-box {
-      width: 100%;
-      background: white;
-      border: 1px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      font-size: 0.82rem;
-      color: #94a3b8;
-    }
-
+    /* Bandeau d'abstinence / continuité */
     .streak-banner {
-      width: 100%;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #2563eb;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 4px solid var(--primary); border-radius: var(--radius);
+      padding: 10px 14px; margin-bottom: 12px; display: flex;
+      align-items: center; justify-content: space-between;
     }
     .streak-info { display: flex; align-items: center; gap: 8px; }
-    .streak-icon { font-size: 1.1rem; }
-    .streak-label { font-weight: 700; font-size: 0.85rem; color: #1e293b; }
-    .streak-counter {
-      font-family: monospace;
-      font-weight: 700;
-      font-size: 0.92rem;
-      color: #2563eb;
-      letter-spacing: 0.02em;
+    .streak-label { font-weight: 700; font-size: 0.85rem; }
+    .streak-counter { font-family: monospace; font-weight: 700; font-size: 0.92rem; color: var(--primary); }
+
+    /* Chronomètres en cours d'exécution */
+    .active-timers-card {
+      background: var(--success-light); border: 1px solid #a7f3d0;
+      border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px;
+    }
+    .active-timer-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 0; font-size: 0.85rem; font-weight: 600;
     }
 
-    #today-summary-list { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
-    .summary-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* Cartes & Tuiles Loop (58px) */
+    .loop-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .loop-row {
+      height: 58px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); display: flex; align-items: center;
+      padding: 0 10px; position: relative; overflow: hidden;
     }
-    .summary-card-left { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #1e293b; }
-    .summary-card-right { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+    .loop-edge { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .loop-main { flex: 1; min-width: 0; padding-left: 6px; display: flex; flex-direction: column; justify-content: center; }
+    .loop-title { font-size: 0.88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .loop-sub { font-size: 0.74rem; color: var(--text-muted); font-weight: 500; }
+    .loop-actions { display: flex; align-items: center; gap: 6px; }
 
-    /* TABLEAU STATISTIQUES MENSUELLES */
-    .stats-table-container {
-      width: 100%;
-      overflow-x: auto;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    .btn-action {
+      height: 38px; min-width: 44px; padding: 0 12px; border-radius: 8px;
+      font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
     }
-    .stats-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      text-align: left;
-    }
-    .stats-table th {
-      background: #f8fafc;
-      padding: 9px 10px;
-      color: #475569;
-      font-weight: 700;
-      border-bottom: 1px solid #e2e8f0;
-      white-space: nowrap;
-    }
-    .stats-table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid #f1f5f9;
-      color: #1e293b;
-      white-space: nowrap;
-    }
-    .stats-table tr:last-child td { border-bottom: none; }
+    .btn-retro { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); min-width: 38px; padding: 0; font-size: 0.95rem; }
+    .btn-instant { background: var(--primary); color: white; }
+    .btn-timer-start { background: var(--success); color: white; }
+    .btn-timer-stop { background: var(--danger); color: white; }
+    .btn-timer-cancel { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); min-width: 38px; padding: 0; }
 
-    /* MATRICE 24H */
-    .matrix-container {
-      width: 100%;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 12px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    /* Accordéon historique */
+    details.history-drawer {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 8px 12px; margin-bottom: 16px;
     }
-    .matrix-header-hours {
-      display: flex;
-      margin-left: 48px;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      font-family: monospace;
-      color: #94a3b8;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #f1f5f9;
-      margin-bottom: 4px;
-    }
-    .matrix-day-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      height: 16px;
-    }
-    .matrix-day-label {
-      width: 42px;
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: #64748b;
-      font-family: monospace;
-      flex-shrink: 0;
-      text-align: right;
-      padding-right: 4px;
-    }
-    .matrix-day-bar {
-      flex-grow: 1;
-      height: 10px;
-      background: #f1f5f9;
-      border-radius: 3px;
-      position: relative;
-      overflow: hidden;
-    }
-    .matrix-segment {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      border-radius: 2px;
-      opacity: 0.9;
+    details.history-drawer summary { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+    .history-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; padding: 6px 8px; background: var(--bg); border-radius: 6px;
     }
 
-    #dashboard-tiles {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 14px;
+    /* Vues Tableau de bord & Statistiques */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 16px;
     }
-    .behavior-row {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #94a3b8;
-      border-radius: 10px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 58px;
-      gap: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-      transition: border-color 0.15s ease, background 0.15s ease;
-    }
-    .behavior-row.running {
-      background: #f0fdf4;
-      border-color: #86efac;
-      border-left-color: #16a34a !important;
-    }
-    .row-left {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      flex-grow: 1;
-      min-width: 0;
-    }
-    .row-title-line { display: flex; align-items: center; gap: 6px; }
-    .row-label {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #1e293b;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .row-domain-tag {
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: #94a3b8;
-      letter-spacing: 0.03em;
-    }
-    .row-subtext {
-      font-size: 0.78rem;
-      color: #64748b;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .row-subtext strong { color: #0f172a; }
-    .row-target-status { font-weight: 600; }
-    .row-target-status.success { color: #16a34a; }
-    .row-target-status.alert { color: #dc2626; }
-    .timer-display-live {
-      font-family: monospace;
-      font-weight: 700;
-      color: #16a34a;
-      font-size: 0.88rem;
-      letter-spacing: 0.03em;
+    .card-title { font-size: 0.92rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .stats-filters { display: flex; gap: 8px; margin-bottom: 12px; }
+    select, input[type="month"], input[type="text"], input[type="number"], input[type="datetime-local"] {
+      width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 0 10px; font-size: 0.85rem; background: var(--surface); color: var(--text);
     }
 
-    .row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .btn-action-touch {
-      min-width: 48px;
-      height: 44px;
-      padding: 0 10px;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      background: #f8fafc;
-      color: #1e293b;
-      font-size: 0.88rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-action-touch:active { transform: scale(0.96); }
-    .btn-action-touch.btn-row-retro {
-      min-width: 38px;
-      height: 44px;
-      padding: 0 6px;
-      font-size: 0.95rem;
-      background: #f8fafc;
-      color: #475569;
-      border-color: #cbd5e1;
-    }
-    .btn-action-touch.btn-row-retro:active { background: #e2e8f0; }
-    .btn-action-touch.instant { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
-    .btn-action-touch.instant:active { background: #dbeafe; }
-    .btn-action-touch.timer-start { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; font-size: 1.05rem; }
-    .btn-action-touch.timer-start:active { background: #dcfce7; }
-    .btn-action-touch.timer-stop { background: #dc2626; border-color: #b91c1c; color: white; font-size: 0.82rem; padding: 0 10px; }
-    .btn-action-touch.timer-stop:active { background: #b91c1c; }
-    .btn-action-touch.timer-cancel { min-width: 38px; height: 44px; padding: 0 8px; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; font-size: 0.85rem; font-weight: 600; }
-    .btn-action-touch.timer-cancel:active { background: #e2e8f0; }
+    /* Tableau mensuel */
+    .table-container { overflow-x: auto; }
+    table.stats-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left; }
+    table.stats-table th { background: var(--bg); padding: 8px 6px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    table.stats-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); }
+    table.stats-table tr:last-child td { border-bottom: none; }
 
-    .retro-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
-      z-index: 250;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+    /* Matrice 24h (Heatmap Circadienne 07h-07h) */
+    .matrix-wrapper { margin-top: 8px; position: relative; }
+    .matrix-axis {
+      display: flex; justify-content: space-between; font-size: 0.68rem;
+      font-weight: 700; color: var(--text-muted); padding-left: 32px; margin-bottom: 4px;
     }
-    .retro-modal-overlay.open { display: flex; }
-    .retro-modal-card {
-      background: white;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 380px;
-      padding: 18px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .matrix-container { display: flex; flex-direction: column; gap: 3px; position: relative; }
+    .matrix-grid-guides {
+      position: absolute; top: 0; bottom: 0; left: 32px; right: 0;
+      pointer-events: none; z-index: 1;
     }
-    .retro-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 8px;
+    .grid-line {
+      position: absolute; top: 0; bottom: 0; width: 1px;
+      background: rgba(226, 232, 240, 0.9);
     }
-    .retro-modal-title { font-weight: 700; font-size: 0.95rem; color: #1e293b; }
-    .btn-close-modal { background: transparent; border: none; font-size: 1.3rem; color: #64748b; cursor: pointer; line-height: 1; }
+    .grid-line.l-12h { left: 20.833%; }
+    .grid-line.l-18h { left: 45.833%; }
+    .grid-line.l-00h { left: 70.833%; }
 
-    section#history-section, section#retro-section { width: 100%; margin-top: 8px; }
-    details.history-accordion { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    summary.history-summary {
-      padding: 12px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      list-style: none;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+    .matrix-row { display: flex; align-items: center; height: 16px; position: relative; z-index: 2; }
+    .matrix-day-label { width: 32px; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); }
+    .matrix-track {
+      flex: 1; height: 100%; background: #f1f5f9; border-radius: 3px;
+      position: relative; overflow: hidden;
     }
-    summary.history-summary::-webkit-details-marker { display: none; }
-    .history-toggle-chevron { font-size: 0.72rem; color: #94a3b8; transition: transform 0.2s ease; }
-    details.history-accordion[open] .history-toggle-chevron { transform: rotate(180deg); }
-    details.history-accordion[open] summary.history-summary { border-bottom: 1px solid #f1f5f9; }
-    ul#history-list { list-style: none; padding: 8px 10px 10px 10px; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-    li.event-item {
-      background: #f8fafc;
-      padding: 9px 12px;
-      border-radius: 6px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.8rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .matrix-block {
+      position: absolute; top: 0; bottom: 0; border-radius: 2px;
+      opacity: 0.75; mix-blend-mode: multiply; cursor: pointer;
     }
-    .event-info { display: flex; flex-direction: column; gap: 2px; }
-    .event-action { font-weight: 600; color: #1e293b; }
-    .event-meta { font-size: 0.7rem; color: #64748b; font-family: monospace; }
-    .event-actions-cluster { display: flex; align-items: center; gap: 6px; }
-    .badge-pending { font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-    .badge-synced { font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-    .btn-event-delete {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
-      color: #e11d48;
-      font-size: 0.75rem;
-      padding: 3px 6px;
-      border-radius: 5px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .matrix-block:active { opacity: 1; outline: 1px solid var(--text); }
+    .matrix-tooltip {
+      margin-top: 10px; padding: 8px 12px; background: #1e293b; color: white;
+      border-radius: 6px; font-size: 0.76rem; font-weight: 600; text-align: center; min-height: 34px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn-event-delete:active { background: #ffe4e6; }
 
-    .admin-card { width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .admin-card h2 { margin: 0; font-size: 1rem; color: #1e293b; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-group { flex: 1; }
-    label { font-size: 0.78rem; font-weight: 600; color: #475569; }
-    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #f8fafc; color: #1e293b; }
-    input:focus, select:focus { border-color: #2563eb; background: white; outline: none; }
-    .form-actions { display: flex; gap: 8px; margin-top: 4px; }
-    button.btn-primary { flex: 2; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    button.btn-primary:active { background: #1d4ed8; }
-    button.btn-secondary { flex: 1; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-
-    #domains-tree-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-    details.domain-accordion {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    /* Boîte modale (Antidatage & Rattrapage) */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 110;
+      display: none; align-items: center; justify-content: center; padding: 16px;
     }
-    details.domain-accordion[open] { border-color: #cbd5e1; }
-    summary.domain-summary {
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-      list-style: none;
-      -webkit-tap-highlight-color: transparent;
-      background: white;
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--surface); border-radius: var(--radius);
+      width: 100%; max-width: 400px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
     }
-    summary.domain-summary::-webkit-details-marker { display: none; }
-    details.domain-accordion[open] summary.domain-summary { border-bottom: 1px solid #f1f5f9; }
-    .domain-summary-left { display: flex; align-items: center; gap: 10px; }
-    .domain-color-pill { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-    .domain-title-text { font-weight: 700; font-size: 0.92rem; color: #1e293b; }
-    .domain-badge-count { font-size: 0.72rem; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; }
-    .domain-summary-right { display: flex; align-items: center; gap: 8px; }
-    .domain-chevron { font-size: 0.72rem; color: #94a3b8; transition: transform 0.2s ease; }
-    details.domain-accordion[open] .domain-chevron { transform: rotate(180deg); }
-    .btn-domain-delete-sm { background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
-    .domain-accordion-body { padding: 10px 12px 14px 12px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px; }
-    .admin-item { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
-    .admin-item-info { display: flex; flex-direction: column; gap: 2px; }
-    .admin-item-name { font-weight: 600; font-size: 0.88rem; color: #1e293b; }
-    .admin-item-meta { font-size: 0.74rem; color: #64748b; }
-    .admin-item-actions { display: flex; gap: 6px; }
-    .btn-item-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
-    .btn-item-delete { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; padding: 5px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; cursor: pointer; }
-    .btn-domain-add-beh { background: white; border: 1px dashed #cbd5e1; color: #2563eb; padding: 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-align: center; margin-top: 4px; }
-    .btn-domain-add-beh:active { background: #eff6ff; }
+    .modal-title { font-weight: 800; font-size: 0.95rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 
-    .sub-nav { display: flex; width: 100%; background: #e2e8f0; border-radius: 8px; padding: 3px; margin-bottom: 16px; gap: 4px; }
-    .sub-tab-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 600; font-size: 0.8rem; color: #64748b; border-radius: 6px; cursor: pointer; text-align: center; }
-    .sub-tab-btn.active { background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    .sub-tab-content { display: none; width: 100%; }
-    .sub-tab-content.active { display: block; }
-    .doc-container { width: 100%; text-align: left; font-size: 0.88rem; line-height: 1.5; }
-    .doc-step { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-    .doc-step h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: #1e3a8a; }
-    .doc-warning { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 8px 10px; margin: 8px 0; font-size: 0.8rem; color: #92400e; border-radius: 0 6px 6px 0; }
-    pre { background: #1e293b; color: #f8fafc; padding: 10px; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
-    code { font-family: monospace; }
-    .doc-footer { font-size: 0.75rem; color: #64748b; text-align: center; margin: 16px 0; }
+    /* Catalogue & Formulaire */
+    .domain-accordion { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+    .domain-accordion summary { padding: 10px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: var(--bg); text-transform: capitalize; }
+    .cat-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 0.85rem; }
+
+    /* Utilitaires */
+    .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); height: 38px; border-radius: 8px; font-weight: 600; padding: 0 12px; cursor: pointer; }
+    .btn-primary { background: var(--primary); border: none; color: white; height: 38px; border-radius: 8px; font-weight: 700; padding: 0 14px; cursor: pointer; }
+    .btn-danger { background: var(--danger-light); border: 1px solid var(--danger); color: var(--danger); height: 38px; border-radius: 8px; font-weight: 700; padding: 0 14px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <div class="top-header-bar">
-    <button class="btn-burger" id="burger-open-btn" aria-label="Menu principal">☰</button>
-    <div class="header-center-title" id="header-center-title" style="display:none;">Tableau de bord</div>
-    <div class="category-scroll-container" id="category-bar"></div>
-    <button class="btn-sync-icon" id="sync-btn" aria-label="Synchronisation Cloud" title="Synchroniser">☁️</button>
-  </div>
+  <!-- En-tête -->
+  <header>
+    <button class="btn-icon" id="open-drawer-btn" aria-label="Menu">☰</button>
+    <div class="nav-domains-scroll" id="nav-domains-container"></div>
+    <button class="btn-icon" id="sync-cloud-btn" title="Synchronisation">☁️</button>
+  </header>
 
-  <div class="drawer-overlay" id="drawer-overlay"></div>
-  <aside class="drawer" id="drawer">
-    <div class="drawer-header">
-      <span class="drawer-title">Navigation</span>
-      <button class="btn-close-drawer" id="burger-close-btn">&times;</button>
-    </div>
-    <div class="drawer-nav">
-      <button class="drawer-item active" data-view="view-dashboard">📈 Tableau de bord</button>
-      <button class="drawer-item" data-view="view-app">📊 Suivi d'activité</button>
-      <button class="drawer-item" data-view="view-catalogue">⚙️ Catalogue des habitudes</button>
-      <button class="drawer-item" data-view="view-doc">📖 Protocole & Relais</button>
-    </div>
+  <!-- Tiroir latéral -->
+  <div id="drawer-overlay"></div>
+  <aside id="drawer">
+    <div class="drawer-header">Suivi Comportemental</div>
+    <ul class="drawer-menu">
+      <li class="drawer-item active" data-target="view-dashboard">📈 Tableau de bord</li>
+      <li class="drawer-item" data-target="view-loop">⚡ Suivi d'activité (Loop)</li>
+      <li class="drawer-item" data-target="view-catalogue">⚙️ Catalogue des habitudes</li>
+      <li class="drawer-item" data-target="view-domains">🏷️ Domaines & Thématiques</li>
+      <li class="drawer-item" data-target="view-protocol">📖 Protocole & Relais</li>
+    </ul>
     <div class="drawer-footer">
-      <button class="btn-drawer-action" id="export-backup-btn">📥 Exporter la sauvegarde (JSON)</button>
-      <input type="file" id="import-backup-input" accept=".json" style="display:none;">
-      <button class="btn-drawer-action" id="import-backup-btn">📤 Restaurer une sauvegarde (JSON)</button>
-      <button id="reset-app-btn">Purger les données et le cache</button>
+      <button class="btn-secondary" id="export-backup-btn">📥 Sauvegarder (JSON)</button>
+      <button class="btn-secondary" id="import-backup-btn">📤 Restaurer (JSON)</button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none;">
+      <button class="btn-danger" id="reset-app-btn">🗑️ Purge globale du cache</button>
     </div>
   </aside>
 
-  <!-- MODALE CONTEXTUELLE DE RATTRAPAGE DIRECT -->
-  <div class="retro-modal-overlay" id="retro-modal-overlay">
-    <div class="retro-modal-card">
-      <div class="retro-modal-header">
-        <span class="retro-modal-title" id="retro-modal-title">🕒 Rattrapage</span>
-        <button type="button" class="btn-close-modal" id="retro-modal-close">&times;</button>
+  <!-- Contenu Principal -->
+  <main>
+    <!-- 1. VUE TABLEAU DE BORD -->
+    <section id="view-dashboard" class="view-panel active">
+      <!-- Bandeau chronos actifs -->
+      <div id="active-timers-banner" class="active-timers-card" style="display:none;">
+        <div style="font-size:0.75rem; font-weight:700; color:#065f46; margin-bottom:4px;">CHRONOMÈTRES ACTIFS</div>
+        <div id="active-timers-list"></div>
       </div>
-      <form id="row-retro-form" style="display: flex; flex-direction: column; gap: 10px;">
-        <input type="hidden" id="row-retro-behavior-id">
-        <div class="form-group">
-          <label for="row-retro-datetime">Date et heure du passage</label>
-          <input type="datetime-local" id="row-retro-datetime" required>
+
+      <!-- Bandeau continuité / abstinence -->
+      <div id="streak-card" class="streak-banner" style="display:none;">
+        <div class="streak-info">
+          <span style="font-size:1.1rem;">⏳</span>
+          <span class="streak-label" id="streak-label">Continuité</span>
         </div>
-        <div class="form-group">
-          <label for="row-retro-val" id="row-retro-val-label">Valeur enregistrée</label>
-          <input type="number" id="row-retro-val" step="any" required>
+        <div class="streak-counter" id="streak-counter">0 j 00 h 00 min</div>
+      </div>
+
+      <!-- Statistiques cumulées mensuelles -->
+      <div class="card">
+        <div class="card-title">
+          <span>Statistiques du mois</span>
         </div>
-        <div class="form-actions" style="margin-top: 6px;">
-          <button type="submit" class="btn-primary" style="padding: 11px;">Enregistrer</button>
-          <button type="button" class="btn-secondary" id="row-retro-cancel" style="padding: 11px;">Annuler</button>
+        <div class="stats-filters">
+          <input type="month" id="stats-month-selector">
+          <select id="stats-domain-filter"></select>
         </div>
-      </form>
+        <div class="table-container">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Comportement</th>
+                <th>Passages</th>
+                <th>Cumul / Durée</th>
+                <th>Moyenne / j</th>
+              </tr>
+            </thead>
+            <tbody id="stats-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Matrice 24h circadienne (07h ➔ 07h J+1) -->
+      <div class="card">
+        <div class="card-title">
+          <span>Matrice 24h mensuelle</span>
+        </div>
+        <div class="stats-filters">
+          <select id="matrix-domain-filter"></select>
+          <select id="matrix-behavior-filter"></select>
+        </div>
+        
+        <div class="matrix-wrapper">
+          <div class="matrix-axis">
+            <span>07h</span>
+            <span>12h</span>
+            <span>18h</span>
+            <span>00h</span>
+            <span>07h</span>
+          </div>
+          <div class="matrix-container" id="matrix-days-container">
+            <div class="matrix-grid-guides">
+              <div class="grid-line l-12h"></div>
+              <div class="grid-line l-18h"></div>
+              <div class="grid-line l-00h"></div>
+            </div>
+          </div>
+        </div>
+        <div class="matrix-tooltip" id="matrix-tooltip">Touchez une barre active pour afficher les détails</div>
+      </div>
+    </section>
+
+    <!-- 2. VUE SUIVI LOOP -->
+    <section id="view-loop" class="view-panel">
+      <div class="loop-list" id="loop-container"></div>
+      
+      <!-- Accordéon historique des passages récents -->
+      <details class="history-drawer">
+        <summary>Historique récent (10 derniers faits)</summary>
+        <div class="history-list" id="history-container"></div>
+      </details>
+    </section>
+
+    <!-- 3. VUE CATALOGUE -->
+    <section id="view-catalogue" class="view-panel">
+      <div class="card">
+        <div class="card-title" id="cat-form-title">Ajouter une habitude</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="cat-label" placeholder="Libellé du comportement">
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="cat-emoji" placeholder="Émoji (ex: ☕)" style="max-width:80px;">
+            <select id="cat-domain"></select>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <select id="cat-mode">
+              <option value="instant">Instantané (+1 clic)</option>
+              <option value="timer">Chronomètre (Durée)</option>
+            </select>
+            <input type="text" id="cat-unit" placeholder="Unité (min, tasse, fois)">
+          </div>
+          <div style="display:flex; gap:8px;">
+            <select id="cat-phase">
+              <option value="baseline">Observation (Baseline neutre)</option>
+              <option value="target">Intervention (Paliers cibles)</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600;">
+              <input type="checkbox" id="cat-track-elapsed"> Suivi streak
+            </label>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+            <button class="btn-secondary" id="cat-cancel-btn" style="display:none;">Annuler</button>
+            <button class="btn-primary" id="cat-save-btn">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+      <div id="catalogue-accordions-container"></div>
+    </section>
+
+    <!-- 4. VUE DOMAINES -->
+    <section id="view-domains" class="view-panel">
+      <div class="card">
+        <div class="card-title">Ajouter une thématique</div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="new-domain-input" placeholder="Nom du domaine (minuscules)">
+          <button class="btn-primary" id="add-domain-btn">Ajouter</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Domaines configurés</div>
+        <div id="domains-list-container" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </section>
+
+    <!-- 5. VUE PROTOCOLE -->
+    <section id="view-protocol" class="view-panel">
+      <div class="card">
+        <div class="card-title">Relais & Architecture souveraine</div>
+        <div style="font-size:0.82rem; color:var(--text-muted); display:flex; flex-direction:column; gap:8px;">
+          <p>• <strong>Écriture aveugle (Write-only) :</strong> transmission par requêtes HTTPS POST (doPost) vers le Google Apps Script connecté à votre tableur à 8 colonnes.</p>
+          <p>• <strong>Étanchéité totale :</strong> aucune donnée personnelle n'est stockée sur GitHub Pages. Les données réelles sont confinées localement dans votre navigateur.</p>
+          <p>• <strong>Phase 3 (Raspberry Pi) :</strong> rapatriement autonome programmé sans ouverture de ports entrants.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modale de rattrapage horodaté (Antidatage) -->
+  <div class="modal-overlay" id="retro-modal">
+    <div class="modal-card">
+      <div class="modal-title" id="retro-modal-title">Rattrapage d'un passage</div>
+      <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Date et heure de réalisation</label>
+      <input type="datetime-local" id="retro-datetime">
+      <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Valeur / Quantité</label>
+      <input type="number" id="retro-value" step="any">
+      <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Notes contextuelles</label>
+      <input type="text" id="retro-notes" placeholder="Optionnel">
+      <div class="modal-footer">
+        <button class="btn-secondary" id="retro-cancel-btn">Annuler</button>
+        <button class="btn-primary" id="retro-save-btn">Valider</button>
+      </div>
     </div>
   </div>
 
-  <!-- VUE 1 : TABLEAU DE BORD (COCKPIT CENTRAL & STATISTIQUES) -->
-  <main id="view-dashboard" class="view-content active">
-    <header class="view-header">
-      <h1>Tableau de bord</h1>
-      <div class="header-subtext" id="dashboard-date-display">Pilotage et synthèse quotidienne</div>
-    </header>
-
-    <div class="shortcut-scroll-container" id="shortcut-bar-dashboard" style="display:none;"></div>
-
-    <div class="dashboard-section-title">⏱ Sessions en cours</div>
-    <div id="active-timers-container"></div>
-
-    <div class="dashboard-section-title">⏳ Continuité & Engagement</div>
-    <div id="dashboard-streak-card" class="streak-banner" style="display: none;">
-      <div class="streak-info">
-        <span class="streak-icon" id="dashboard-streak-icon">⏳</span>
-        <span class="streak-label" id="dashboard-streak-label">Continuité</span>
-      </div>
-      <div class="streak-counter" id="dashboard-streak-counter">0 j 00 h 00 min</div>
-    </div>
-
-    <div class="dashboard-section-title">📊 Synthèse du jour</div>
-    <div id="today-summary-list"></div>
-
-    <!-- NOUVELLES SECTIONS STATISTIQUES MENSUELLES & MATRICE 24H -->
-    <div class="dashboard-section-title">📈 Statistiques cumulées du mois</div>
-    <div class="form-row" style="margin-bottom: 8px; width: 100%; gap: 8px;">
-      <div class="form-group" style="flex: 1;">
-        <label for="stats-month-picker" style="font-size: 0.72rem;">Mois observé</label>
-        <input type="month" id="stats-month-picker" style="padding: 7px 8px; font-size: 0.8rem;">
-      </div>
-      <div class="form-group" style="flex: 1;">
-        <label for="stats-domain-filter" style="font-size: 0.72rem;">Thématique</label>
-        <select id="stats-domain-filter" style="padding: 7px 8px; font-size: 0.8rem;"></select>
-      </div>
-    </div>
-
-    <div class="stats-table-container">
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th>Comportement</th>
-            <th>Passages</th>
-            <th>Volume total</th>
-            <th>Moy./j</th>
-          </tr>
-        </thead>
-        <tbody id="stats-table-body"></tbody>
-      </table>
-    </div>
-
-    <div class="dashboard-section-title">🕒 Matrice 24h mensuelle</div>
-    <div class="form-group" style="width: 100%; margin-bottom: 8px;">
-      <label for="matrix-behavior-select" style="font-size: 0.72rem;">Comportement visualisé</label>
-      <select id="matrix-behavior-select" style="padding: 7px 8px; font-size: 0.8rem;"></select>
-    </div>
-
-    <div class="matrix-container" id="matrix-container">
-      <div class="matrix-header-hours">
-        <span>00h</span>
-        <span>06h</span>
-        <span>12h</span>
-        <span>18h</span>
-        <span>24h</span>
-      </div>
-      <div id="matrix-days-list"></div>
-    </div>
-  </main>
-
-  <!-- VUE 2 : SUIVI D'ACTIVITÉ (SAISIE RAPIDE LOOP) -->
-  <section id="view-app" class="view-content">
-    <header class="view-header">
-      <h1>Suivi d'activité</h1>
-      <div class="header-subtext" id="counter">0 enregistrement</div>
-    </header>
-
-    <div class="shortcut-scroll-container" id="shortcut-bar-app" style="display:none;"></div>
-
-    <div id="dashboard-tiles"></div>
-
-    <section id="history-section">
-      <details class="history-accordion">
-        <summary class="history-summary">
-          <span>Derniers passages</span>
-          <span class="history-toggle-chevron">▼</span>
-        </summary>
-        <ul id="history-list"></ul>
-      </details>
-    </section>
-
-    <section id="retro-section">
-      <details class="history-accordion">
-        <summary class="history-summary">
-          <span>🕒 Saisie différée générale</span>
-          <span class="history-toggle-chevron">▼</span>
-        </summary>
-        <form id="retro-form" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: white;">
-          <div class="form-group">
-            <label for="retro-behavior-select">Comportement</label>
-            <select id="retro-behavior-select" required></select>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 2;">
-              <label for="retro-datetime">Date et heure</label>
-              <input type="datetime-local" id="retro-datetime" required>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label for="retro-val">Valeur</label>
-              <input type="number" id="retro-val" step="any" required>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary" style="padding: 10px; margin-top: 4px;">Consigner dans le passé</button>
-        </form>
-      </details>
-    </section>
-  </section>
-
-  <!-- VUE 3 : CATALOGUE DES HABITUDES -->
-  <section id="view-catalogue" class="view-content">
-    <div class="admin-card">
-      <h2>Créer un domaine</h2>
-      <form id="domain-form">
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <input type="text" id="new-domain-input" placeholder="ex. sommeil, nutrition, travail" required>
-          </div>
-          <button type="submit" class="btn-primary" style="flex:1; padding: 10px;">+ Ajouter</button>
-        </div>
-      </form>
-    </div>
-
-    <div style="width:100%; margin-bottom: 8px;">
-      <h2 style="font-size: 1rem; color: #1e293b; margin: 4px 0 10px 4px;">Domaines et habitudes</h2>
-    </div>
-    <div id="domains-tree-container"></div>
-
-    <div class="admin-card" id="card-behavior-form">
-      <h2 id="form-title">Ajouter un comportement</h2>
-      <form id="behavior-form">
-        <input type="hidden" id="field-id">
-        <div class="form-row">
-          <div class="form-group" style="flex: 3;">
-            <label for="field-label">Nom du comportement</label>
-            <input type="text" id="field-label" placeholder="ex. Méditation, Pompes, Café" required>
-          </div>
-          <div class="form-group" style="flex: 1; max-width: 90px;">
-            <label for="field-emoji">Émoji</label>
-            <input type="text" id="field-emoji" placeholder="ex. 🧴" maxlength="4">
-          </div>
-        </div>
-
-        <div class="form-row" style="align-items: center; gap: 14px; margin-top: 2px; margin-bottom: 2px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="field-is-shortcut" style="width: auto; margin: 0; cursor: pointer;">
-            <label for="field-is-shortcut" style="margin: 0; cursor: pointer;">Bulle de raccourci</label>
-          </div>
-          <div class="form-group" id="group-shortcut-color" style="flex: 1; max-width: 120px; display: none;">
-            <label for="field-shortcut-color">Couleur fond</label>
-            <input type="color" id="field-shortcut-color" value="#2563eb" style="padding: 2px; height: 38px; cursor: pointer;">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="field-domain">Domaine / Thématique</label>
-            <select id="field-domain" required></select>
-          </div>
-          <div class="form-group">
-            <label for="field-mode">Mode de mesure</label>
-            <select id="field-mode">
-              <option value="instant">Clic instantané</option>
-              <option value="timer">Chronomètre</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="field-unit">Unité</label>
-            <input type="text" id="field-unit" placeholder="ex. tasse, rep" required>
-            <select id="field-unit-select" style="display:none;">
-              <option value="min">min (Minutes)</option>
-              <option value="sec">sec (Secondes)</option>
-              <option value="h">h (Heures)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="field-default" id="label-default">Valeur par clic</label>
-            <input type="number" id="field-default" step="any" placeholder="Optionnel (défaut : 1)">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="field-phase">Phase clinique</label>
-            <select id="field-phase">
-              <option value="baseline">Observation (Baseline)</option>
-              <option value="target">Intervention (Paliers)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="field-direction">Sens d'objectif</label>
-            <select id="field-direction">
-              <option value="decrease">Réduction (Plafond)</option>
-              <option value="increase">Développement (Plancher)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="field-baseline">Baseline (départ)</label>
-            <input type="number" id="field-baseline" step="any" placeholder="Optionnel">
-          </div>
-          <div class="form-group">
-            <label for="field-step">Palier actif</label>
-            <input type="number" id="field-step" step="any" placeholder="Optionnel">
-          </div>
-          <div class="form-group">
-            <label for="field-final">Cible finale</label>
-            <input type="number" id="field-final" step="any" placeholder="Optionnel">
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" id="btn-save">Enregistrer</button>
-          <button type="button" class="btn-secondary" id="btn-cancel" style="display:none;">Annuler</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <!-- VUE 4 : PROTOCOLE & RELAIS -->
-  <section id="view-doc" class="view-content">
-    <div class="doc-container">
-      <nav class="sub-nav">
-        <button class="sub-tab-btn active" data-subtab="sub-tuto">Tuto Relais & Déploiement</button>
-        <button class="sub-tab-btn" data-subtab="sub-arch">Architecture & Recette</button>
-      </nav>
-      <div id="sub-tuto" class="sub-tab-content active">
-        <div class="doc-step">
-          <h3>1. Mental Model du Relais Cloud</h3>
-          <p>La PWA sauvegarde chaque fait localement dans le <code>localStorage</code>[span_19](start_span)[span_19](end_span)[span_20](start_span)[span_20](end_span). Google Sheets et Apps Script servent de tampon Cloud gratuit pour réceptionner les synchros quand le réseau est disponible, avant le rapatriement ultérieur vers le Raspberry Pi[span_21](start_span)[span_21](end_span)[span_22](start_span)[span_22](end_span).</p>
-        </div>
-        <div class="doc-step">
-          <h3>2. La règle absolue : Navigation Privée</h3>
-          <div class="doc-warning">
-            <strong>Piège multi-comptes :</strong> Google gère mal les sessions multiples connectées en même temps[span_23](start_span)[span_23](end_span)[span_24](start_span)[span_24](end_span). Ouvre systématiquement la feuille et l'éditeur Apps Script en <em>navigation privée</em> avec le compte Google dédié au projet[span_25](start_span)[span_25](end_span)[span_26](start_span)[span_26](end_span).
-          </div>
-        </div>
-        <div class="doc-step">
-          <h3>3. Procédure de déploiement d'une version</h3>
-          <p>Pour modifier le script sans casser l'URL Web de la PWA :</p>
-          <p>1. Ajuster le code dans Apps Script et cliquer sur l'icône de disquette (Enregistrer)[span_27](start_span)[span_27](end_span)[span_28](start_span)[span_28](end_span).</p>
-          <p>2. Cliquer sur <strong>Déployer > Gérer les déploiements</strong>[span_29](start_span)[span_29](end_span)[span_30](start_span)[span_30](end_span).</p>
-          <p>3. Cliquer sur le <strong>Crayon (Modifier)</strong> à côté du déploiement actif[span_31](start_span)[span_31](end_span)[span_32](start_span)[span_32](end_span).</p>
-          <p>4. Dans le menu <em>Version</em>, sélectionner impérativement <strong>« Nouvelle version »</strong>[span_33](start_span)[span_33](end_span)[span_34](start_span)[span_34](end_span).</p>
-          <p>5. Cliquer sur <strong>Déployer</strong>. L'adresse se terminant par <code>/exec</code> reste identique[span_35](start_span)[span_35](end_span)[span_36](start_span)[span_36](end_span).</p>
-        </div>
-      </div>
-      <div id="sub-arch" class="sub-tab-content">
-        <div class="doc-step">
-          <h3>1. Structure du tableur Google Sheets (8 colonnes)</h3>
-          <p>Sur la ligne 1 de la feuille active, définir rigoureusement :</p>
-          <code>id | timestamp_utc | date_fr | domaine | action | valeur | unite | reception_utc</code>[span_37](start_span)[span_37](end_span)[span_38](start_span)[span_38](end_span)
-        </div>
-        <div class="doc-step">
-          <h3>2. Code Apps Script récepteur (Code.gs)</h3>
-          <pre><code>function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-    var items = Array.isArray(data) ? data : [data];
-    var receptionTime = new Date().toISOString();
-    
-    items.forEach(function(item) {
-      sheet.appendRow([
-        item.id,
-        item.timestamp,
-        item.date_fr || '',
-        item.domain || 'general',
-        item.action || 'passage',
-        item.value !== null ? item.value : '',
-        item.unit || '',
-        receptionTime
-      ]);
-    });
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      count: items.length
-    })).setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}</code></pre>
-        </div>
-      </div>
-      <div class="doc-footer">
-        Fiche technique embarquée • Suivi comportemental autonome[span_39](start_span)[span_39](end_span)[span_40](start_span)[span_40](end_span)
-      </div>
-    </div>
-  </section>
-
   <script>
-    function getDomainColor(domain) {
-      const palette = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
-      let hash = 0;
-      for (let i = 0; i < domain.length; i++) hash = domain.charCodeAt(i) + ((hash << 5) - hash);
-      return palette[Math.abs(hash) % palette.length];
-    }
-
-    const burgerOpenBtn = document.getElementById('burger-open-btn');
-    const burgerCloseBtn = document.getElementById('burger-close-btn');
-    const drawer = document.getElementById('drawer');
-    const drawerOverlay = document.getElementById('drawer-overlay');
-    const drawerItems = document.querySelectorAll('.drawer-item');
-    const viewContents = document.querySelectorAll('.view-content');
-    const headerCenterTitle = document.getElementById('header-center-title');
-
-    function openDrawer() { drawer.classList.add('open'); drawerOverlay.classList.add('open'); }
-    function closeDrawer() { drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
-
-    burgerOpenBtn.addEventListener('click', openDrawer);
-    burgerCloseBtn.addEventListener('click', closeDrawer);
-    drawerOverlay.addEventListener('click', closeDrawer);
-
-    function switchView(targetViewId) {
-      drawerItems.forEach(b => {
-        b.classList.toggle('active', b.dataset.view === targetViewId);
-      });
-      viewContents.forEach(v => {
-        v.classList.toggle('active', v.id === targetViewId);
-      });
-
-      if (targetViewId === 'view-app') {
-        categoryBar.style.display = 'flex';
-        headerCenterTitle.style.display = 'none';
-      } else {
-        categoryBar.style.display = 'none';
-        headerCenterTitle.style.display = 'block';
-        if (targetViewId === 'view-dashboard') headerCenterTitle.textContent = 'Tableau de bord';
-        else if (targetViewId === 'view-catalogue') headerCenterTitle.textContent = 'Catalogue';
-        else if (targetViewId === 'view-doc') headerCenterTitle.textContent = 'Protocole';
-      }
-      closeDrawer();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    drawerItems.forEach(item => {
-      item.addEventListener('click', () => switchView(item.dataset.view));
-    });
-
-    const subTabButtons = document.querySelectorAll('.sub-tab-btn');
-    const subTabContents = document.querySelectorAll('.sub-tab-content');
-    subTabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        subTabButtons.forEach(b => b.classList.remove('active'));
-        subTabContents.forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.subtab).classList.add('active');
-      });
-    });
-
-    const categoryBar = document.getElementById('category-bar');
-    const syncButton = document.getElementById('sync-btn');
-    const counterDisplay = document.getElementById('counter');
-    const historyList = document.getElementById('history-list');
-    const exportBackupBtn = document.getElementById('export-backup-btn');
-    const importBackupBtn = document.getElementById('import-backup-btn');
-    const importBackupInput = document.getElementById('import-backup-input');
-    const resetAppBtn = document.getElementById('reset-app-btn');
-    const dashboardTiles = document.getElementById('dashboard-tiles');
-
-    const domainForm = document.getElementById('domain-form');
-    const newDomainInput = document.getElementById('new-domain-input');
-    const domainsTreeContainer = document.getElementById('domains-tree-container');
-    const cardBehaviorForm = document.getElementById('card-behavior-form');
-
-    const behaviorForm = document.getElementById('behavior-form');
-    const formTitle = document.getElementById('form-title');
-    const fieldId = document.getElementById('field-id');
-    const fieldLabel = document.getElementById('field-label');
-    const fieldEmoji = document.getElementById('field-emoji');
-    const fieldIsShortcut = document.getElementById('field-is-shortcut');
-    const fieldShortcutColor = document.getElementById('field-shortcut-color');
-    const groupShortcutColor = document.getElementById('group-shortcut-color');
-    const fieldDomain = document.getElementById('field-domain');
-    const fieldMode = document.getElementById('field-mode');
-    const fieldUnit = document.getElementById('field-unit');
-    const fieldUnitSelect = document.getElementById('field-unit-select');
-    const fieldDefault = document.getElementById('field-default');
-    const labelDefault = document.getElementById('label-default');
-    const fieldPhase = document.getElementById('field-phase');
-    const fieldDirection = document.getElementById('field-direction');
-    const fieldBaseline = document.getElementById('field-baseline');
-    const fieldStep = document.getElementById('field-step');
-    const fieldFinal = document.getElementById('field-final');
-    const btnCancel = document.getElementById('btn-cancel');
-
-    /* TABLEAU DE BORD ÉLÉMENTS */
-    const activeTimersContainer = document.getElementById('active-timers-container');
-    const dashboardStreakCard = document.getElementById('dashboard-streak-card');
-    const dashboardStreakIcon = document.getElementById('dashboard-streak-icon');
-    const dashboardStreakLabel = document.getElementById('dashboard-streak-label');
-    const dashboardStreakCounter = document.getElementById('dashboard-streak-counter');
-    const todaySummaryList = document.getElementById('today-summary-list');
-    const dashboardDateDisplay = document.getElementById('dashboard-date-display');
-    const shortcutBarApp = document.getElementById('shortcut-bar-app');
-    const shortcutBarDashboard = document.getElementById('shortcut-bar-dashboard');
-    const DEFAULT_STREAK_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime();
-
-    /* NOUVELLES RÉFÉRENCES STATS & MATRICE */
-    const statsMonthPicker = document.getElementById('stats-month-picker');
-    const statsDomainFilter = document.getElementById('stats-domain-filter');
-    const statsTableBody = document.getElementById('stats-table-body');
-    const matrixBehaviorSelect = document.getElementById('matrix-behavior-select');
-    const matrixDaysList = document.getElementById('matrix-days-list');
-
-    const retroForm = document.getElementById('retro-form');
-    const retroBehaviorSelect = document.getElementById('retro-behavior-select');
-    const retroDatetime = document.getElementById('retro-datetime');
-    const retroVal = document.getElementById('retro-val');
-
-    /* MODALE CONTEXTUELLE DE RATTRAPAGE DIRECT */
-    const retroModalOverlay = document.getElementById('retro-modal-overlay');
-    const retroModalClose = document.getElementById('retro-modal-close');
-    const rowRetroForm = document.getElementById('row-retro-form');
-    const rowRetroBehaviorId = document.getElementById('row-retro-behavior-id');
-    const rowRetroDatetime = document.getElementById('row-retro-datetime');
-    const rowRetroVal = document.getElementById('row-retro-val');
-    const rowRetroValLabel = document.getElementById('row-retro-val-label');
-    const rowRetroCancel = document.getElementById('row-retro-cancel');
-    const retroModalTitle = document.getElementById('retro-modal-title');
-
-    const STORAGE_KEY = 'behavior_logs';
-    const CATALOGUE_KEY = 'behavior_catalogue';
-    const DOMAINS_KEY = 'behavior_domains';
-    const TIMERS_KEY = 'active_timers';
-    const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxJqMJtsi7OUsZlICIBfpGUlFPMUV45NgK3oVa4RtZtG0IZWtpEhkhRokKQA3JYJUoT/exec';
-
-    let timerInterval = null;
-    let selectedDomainFilter = 'all';
-
-    const INITIAL_DOMAINS = ["consommation", "sante", "sport"];
-    const INITIAL_CATALOGUE = [
-      {
-        id: "comportement_a",
-        label: "Café",
-        emoji: "☕",
-        domain: "consommation",
-        mode: "instant",
-        unit: "tasse",
-        defaultValue: 1,
-        isShortcut: true,
-        shortcutColor: "#78350f",
-        phase: "target",
-        target: { direction: "decrease", period: "jour", baseline: 6, currentStep: 4, finalTarget: 2 }
-      },
-      {
-        id: "comportement_b",
-        label: "Méditation",
-        emoji: "🧘",
-        domain: "sante",
-        mode: "timer",
-        unit: "min",
-        defaultValue: null,
-        isShortcut: false,
-        shortcutColor: "#16a34a",
-        phase: "baseline",
-        target: { direction: "increase", period: "jour", baseline: null, currentStep: null, finalTarget: null }
-      },
-      {
-        id: "comportement_c",
-        label: "Marche active",
-        emoji: "🚶",
-        domain: "sport",
-        mode: "instant",
-        unit: "min",
-        defaultValue: 15,
-        isShortcut: false,
-        shortcutColor: "#2563eb",
-        phase: "target",
-        target: { direction: "increase", period: "jour", baseline: 0, currentStep: 20, finalTarget: 45 }
-      }
+    /* =========================================================
+       CONSTANTES & JEU DE DONNÉES PAR DÉFAUT (NEUTRE SUR GITHUB)
+       ========================================================= */
+    const DEFAULT_DOMAINS = ['consommation', 'sante', 'sport'];
+    const DEFAULT_CATALOGUE = [
+      { id: 'cafe', label: 'Café', emoji: '☕', domain: 'consommation', mode: 'instant', unit: 'tasse', defaultValue: 1, phase: 'baseline', trackElapsed: true },
+      { id: 'meditation', label: 'Méditation', emoji: '🧘', domain: 'sante', mode: 'timer', unit: 'min', defaultValue: 15, phase: 'baseline' },
+      { id: 'marche', label: 'Marche active', emoji: '🚶', domain: 'sport', mode: 'timer', unit: 'min', defaultValue: 30, phase: 'target', target: { direction: 'increase', period: 'jour', baseline: 0, currentStep: 30, finalTarget: 60 } }
     ];
+    const DEFAULT_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime(); // 1er octobre 2026
 
+    const PALETTE = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#84cc16', '#6366f1'];
+
+    /* =========================================================
+       GESTIONNAIRE DE STOCKAGE LOCAL (localStorage)
+       ========================================================= */
     function getCatalogue() {
-      const raw = localStorage.getItem(CATALOGUE_KEY);
-      if (!raw) {
-        localStorage.setItem(CATALOGUE_KEY, JSON.stringify(INITIAL_CATALOGUE));
-        return INITIAL_CATALOGUE;
-      }
-      return JSON.parse(raw);
+      const d = localStorage.getItem('behavior_catalogue');
+      return d ? JSON.parse(d) : DEFAULT_CATALOGUE;
     }
-    function saveCatalogue(catalogue) { localStorage.setItem(CATALOGUE_KEY, JSON.stringify(catalogue)); }
+    function saveCatalogue(c) { localStorage.setItem('behavior_catalogue', JSON.stringify(c)); }
+
+    function getStoredEvents() {
+      const d = localStorage.getItem('behavior_logs');
+      return d ? JSON.parse(d) : [];
+    }
+    function saveStoredEvents(e) { localStorage.setItem('behavior_logs', JSON.stringify(e)); }
 
     function getDomains() {
-      const raw = localStorage.getItem(DOMAINS_KEY);
-      if (!raw) {
-        const catalogue = getCatalogue();
-        const existing = Array.from(new Set(catalogue.map(c => c.domain.toLowerCase())));
-        const domains = existing.length > 0 ? existing : INITIAL_DOMAINS;
-        localStorage.setItem(DOMAINS_KEY, JSON.stringify(domains));
-        return domains;
-      }
-      return JSON.parse(raw);
+      const d = localStorage.getItem('behavior_domains');
+      return d ? JSON.parse(d) : DEFAULT_DOMAINS;
     }
-    function saveDomains(domains) { localStorage.setItem(DOMAINS_KEY, JSON.stringify(domains)); }
+    function saveDomains(d) { localStorage.setItem('behavior_domains', JSON.stringify(d)); }
 
     function getActiveTimers() {
-      const raw = localStorage.getItem(TIMERS_KEY);
-      return raw ? JSON.parse(raw) : {};
+      const d = localStorage.getItem('active_timers');
+      return d ? JSON.parse(d) : {};
     }
-    function saveActiveTimers(timers) { localStorage.setItem(TIMERS_KEY, JSON.stringify(timers)); }
+    function saveActiveTimers(t) { localStorage.setItem('active_timers', JSON.stringify(t)); }
 
-    fieldIsShortcut.addEventListener('change', () => {
-      groupShortcutColor.style.display = fieldIsShortcut.checked ? 'flex' : 'none';
-    });
-
-    domainForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = newDomainInput.value.trim().toLowerCase();
-      if (!name) return;
+    function getDomainColor(domain) {
       const domains = getDomains();
-      if (domains.includes(name)) { alert('Ce domaine existe déjà.'); return; }
-      domains.push(name);
-      saveDomains(domains);
-      newDomainInput.value = '';
-      refreshAllUI();
-    });
-
-    function deleteDomain(domainToDelete) {
-      const catalogue = getCatalogue();
-      const linked = catalogue.filter(c => c.domain.toLowerCase() === domainToDelete);
-      if (linked.length > 0) {
-        const confirmCascade = confirm(`Attention : le domaine « ${domainToDelete} » contient ${linked.length} comportement(s).\n\nSupprimer ce domaine ET TOUS les comportements associés ?`);
-        if (!confirmCascade) return;
-        saveCatalogue(catalogue.filter(c => c.domain.toLowerCase() !== domainToDelete));
-        const timers = getActiveTimers();
-        linked.forEach(c => { delete timers[c.id]; });
-        saveActiveTimers(timers);
-      } else {
-        if (!confirm(`Supprimer le domaine « ${domainToDelete} » ?`)) return;
-      }
-      saveDomains(getDomains().filter(d => d !== domainToDelete));
-      if (selectedDomainFilter === domainToDelete) selectedDomainFilter = 'all';
-      refreshAllUI();
+      const idx = domains.indexOf(domain);
+      return idx >= 0 ? PALETTE[idx % PALETTE.length] : '#94a3b8';
     }
 
-    function renderCatalogueTree() {
-      const domains = getDomains().sort();
-      const catalogue = getCatalogue();
+    /* =========================================================
+       ÉTAT DE SESSION & NAVIGATION
+       ========================================================= */
+    let currentFilterDomain = 'all';
+    let editingBehaviorId = null;
+    let retroBehaviorId = null;
 
-      const openDomains = new Set();
-      document.querySelectorAll('#domains-tree-container details.domain-accordion[open]').forEach(el => {
-        if (el.dataset.domain) openDomains.add(el.dataset.domain);
+    function initNavigation() {
+      document.querySelectorAll('.drawer-item').forEach(item => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.drawer-item').forEach(i => i.classList.remove('active'));
+          document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+          item.classList.add('active');
+          const target = item.getAttribute('data-target');
+          document.getElementById(target).classList.add('active');
+          closeDrawer();
+          refreshAllUI();
+        });
       });
 
-      domainsTreeContainer.innerHTML = '';
-      if (domains.length === 0) {
-        domainsTreeContainer.innerHTML = '<div style="font-size:0.85rem; color:#888; padding: 8px;">Aucun domaine configuré.</div>';
+      document.getElementById('open-drawer-btn').addEventListener('click', openDrawer);
+      document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
+    }
+
+    function openDrawer() {
+      document.getElementById('drawer').classList.add('open');
+      document.getElementById('drawer-overlay').classList.add('open');
+    }
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawer-overlay').classList.remove('open');
+    }
+
+    /* =========================================================
+       MOTEUR DE JOURNALISATION (LOGS & TIMERS)
+       ========================================================= */
+    function logEvent(actionId, value, unit, notes = '', customIsoDate = null) {
+      const cat = getCatalogue();
+      const item = cat.find(c => c.id === actionId);
+      const domain = item ? item.domain : 'general';
+      const events = getStoredEvents();
+      const now = customIsoDate ? new Date(customIsoDate) : new Date();
+
+      const newLog = {
+        id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        timestamp: now.toISOString(),
+        domain: domain,
+        action: actionId,
+        value: Number(value),
+        unit: unit || '',
+        synced: false,
+        notes: notes
+      };
+
+      events.unshift(newLog);
+      saveStoredEvents(events);
+      refreshAllUI();
+    }
+
+    function deleteLog(logId) {
+      let events = getStoredEvents();
+      events = events.filter(e => e.id !== logId);
+      saveStoredEvents(events);
+      refreshAllUI();
+    }
+
+    function startTimer(actionId) {
+      const timers = getActiveTimers();
+      timers[actionId] = Date.now();
+      saveActiveTimers(timers);
+      refreshAllUI();
+    }
+
+    function stopTimer(actionId) {
+      const timers = getActiveTimers();
+      const startMs = timers[actionId];
+      if (!startMs) return;
+
+      const cat = getCatalogue();
+      const item = cat.find(c => c.id === actionId);
+      const elapsedMs = Math.max(0, Date.now() - startMs);
+      
+      let durationVal = elapsedMs / 60000; // minutes décimales par défaut
+      let unit = 'min';
+      if (item && item.unit === 'h') {
+        durationVal = elapsedMs / 3600000;
+        unit = 'h';
+      } else if (item && item.unit === 'sec') {
+        durationVal = Math.floor(elapsedMs / 1000);
+        unit = 'sec';
+      } else {
+        durationVal = Math.round(durationVal * 100) / 100;
+      }
+
+      const startStr = new Date(startMs).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const endStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const notes = `Session : ${startStr} -> ${endStr} (${Math.round(elapsedMs / 1000)} s)`;
+
+      delete timers[actionId];
+      saveActiveTimers(timers);
+      logEvent(actionId, durationVal, unit, notes);
+    }
+
+    function cancelTimer(actionId) {
+      const timers = getActiveTimers();
+      delete timers[actionId];
+      saveActiveTimers(timers);
+      refreshAllUI();
+    }
+
+    /* =========================================================
+       RENDU DU SUIVI (LOOP VIEW)
+       ========================================================= */
+    function renderLoopUI() {
+      const container = document.getElementById('loop-container');
+      container.innerHTML = '';
+      const catalogue = getCatalogue();
+      const timers = getActiveTimers();
+      const events = getStoredEvents();
+
+      // Filtrage par domaine
+      const items = currentFilterDomain === 'all' 
+        ? catalogue 
+        : catalogue.filter(c => c.domain === currentFilterDomain);
+
+      // Calcul des cumuls du jour (depuis minuit local)
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const startOfDayMs = startOfDay.getTime();
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'loop-row';
+
+        const edge = document.createElement('div');
+        edge.className = 'loop-edge';
+        edge.style.backgroundColor = getDomainColor(item.domain);
+        row.appendChild(edge);
+
+        const main = document.createElement('div');
+        main.className = 'loop-main';
+
+        const title = document.createElement('div');
+        title.className = 'loop-title';
+        title.innerHTML = `<span>${item.emoji || '•'}</span> <span>${item.label}</span>`;
+
+        const sub = document.createElement('div');
+        sub.className = 'loop-sub';
+
+        const todayLogs = events.filter(e => e.action === item.id && new Date(e.timestamp).getTime() >= startOfDayMs);
+        const todaySum = todayLogs.reduce((acc, cur) => acc + Number(cur.value || 0), 0);
+        const roundedSum = Math.round(todaySum * 10) / 10;
+
+        const isTimerRunning = Boolean(timers[item.id]);
+
+        if (isTimerRunning) {
+          const elapsedSec = Math.floor((Date.now() - timers[item.id]) / 1000);
+          const m = Math.floor(elapsedSec / 60);
+          const s = elapsedSec % 60;
+          sub.textContent = `En cours : ${m} min ${String(s).padStart(2, '0')} s`;
+          sub.style.color = 'var(--success)';
+          sub.style.fontWeight = '700';
+        } else {
+          sub.textContent = `Aujourd'hui : ${roundedSum} ${item.unit || ''} (${item.phase === 'baseline' ? 'obs' : 'cible'})`;
+        }
+
+        main.appendChild(title);
+        main.appendChild(sub);
+        row.appendChild(main);
+
+        const actions = document.createElement('div');
+        actions.className = 'loop-actions';
+
+        if (item.mode === 'timer') {
+          if (isTimerRunning) {
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'btn-action btn-timer-cancel';
+            btnCancel.textContent = '✕';
+            btnCancel.onclick = () => cancelTimer(item.id);
+
+            const btnStop = document.createElement('button');
+            btnStop.className = 'btn-action btn-timer-stop';
+            btnStop.textContent = '⏹ Arrêter';
+            btnStop.onclick = () => stopTimer(item.id);
+
+            actions.appendChild(btnCancel);
+            actions.appendChild(btnStop);
+          } else {
+            const btnRetro = document.createElement('button');
+            btnRetro.className = 'btn-action btn-retro';
+            btnRetro.textContent = '🕒';
+            btnRetro.onclick = () => openRetroModal(item.id);
+
+            const btnStart = document.createElement('button');
+            btnStart.className = 'btn-action btn-timer-start';
+            btnStart.textContent = '▶';
+            btnStart.onclick = () => startTimer(item.id);
+
+            actions.appendChild(btnRetro);
+            actions.appendChild(btnStart);
+          }
+        } else {
+          const btnRetro = document.createElement('button');
+          btnRetro.className = 'btn-action btn-retro';
+          btnRetro.textContent = '🕒';
+          btnRetro.onclick = () => openRetroModal(item.id);
+
+          const btnAdd = document.createElement('button');
+          btnAdd.className = 'btn-action btn-instant';
+          btnAdd.textContent = `+${item.defaultValue || 1}`;
+          btnAdd.onclick = () => logEvent(item.id, item.defaultValue || 1, item.unit);
+
+          actions.appendChild(btnRetro);
+          actions.appendChild(btnAdd);
+        }
+
+        row.appendChild(actions);
+        container.appendChild(row);
+      });
+
+      renderHistoryUI();
+    }
+
+    function renderHistoryUI() {
+      const container = document.getElementById('history-container');
+      container.innerHTML = '';
+      const events = getStoredEvents().slice(0, 10);
+      const cat = getCatalogue();
+
+      events.forEach(e => {
+        const item = cat.find(c => c.id === e.action);
+        const label = item ? item.label : e.action;
+        const timeStr = new Date(e.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const row = document.createElement('div');
+        row.className = 'history-item';
+        row.innerHTML = `
+          <span><strong>${timeStr}</strong> • ${label} (+${e.value} ${e.unit})</span>
+          <button class="btn-icon" style="font-size:0.85rem;" onclick="deleteLog('${e.id}')">🗑️</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    /* =========================================================
+       BANDEAU DE CONTINUITÉ (STREAK DEPUIS L'EPOCH)
+       ========================================================= */
+    function updateStreakDisplay() {
+      const streakCard = document.getElementById('streak-card');
+      const streakLabel = document.getElementById('streak-label');
+      const streakCounter = document.getElementById('streak-counter');
+      const catalogue = getCatalogue();
+      const targetItem = catalogue.find(c => c.trackElapsed === true);
+
+      if (!targetItem) {
+        streakCard.style.display = 'none';
         return;
       }
 
-      domains.forEach(dom => {
-        const linked = catalogue.filter(c => c.domain.toLowerCase() === dom);
+      streakCard.style.display = 'flex';
+      streakLabel.textContent = targetItem.label;
+
+      const events = getStoredEvents().filter(e => e.action === targetItem.id);
+      let lastTimestamp = DEFAULT_EPOCH;
+      if (events.length > 0) {
+        const ts = events.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
+        if (ts.length > 0) lastTimestamp = Math.max(...ts);
+      }
+
+      const elapsedMs = Math.max(0, Date.now() - lastTimestamp);
+      const totalSec = Math.floor(elapsedMs / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const pad = n => String(n).padStart(2, '0');
+
+      streakCounter.textContent = days > 0 
+        ? `${days} j ${pad(hours)} h ${pad(mins)} min` 
+        : `${pad(hours)} h ${pad(mins)} min`;
+    }
+
+    /* =========================================================
+       STATISTIQUES MENSUELLES (DIVISEUR SUR JOURS ÉCOULÉS)
+       ========================================================= */
+    function renderMonthlyStats() {
+      const tbody = document.getElementById('stats-table-body');
+      tbody.innerHTML = '';
+      const monthInput = document.getElementById('stats-month-selector').value;
+      const domainFilter = document.getElementById('stats-domain-filter').value;
+
+      if (!monthInput) return;
+
+      const [yearStr, monthStr] = monthInput.split('-');
+      const year = parseInt(yearStr, 10);
+      const monthIndex = parseInt(monthStr, 10) - 1;
+
+      const now = new Date();
+      const isCurrentMonth = (now.getFullYear() === year && now.getMonth() === monthIndex);
+      const totalDaysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+      
+      // Règle ergonomique : diviseur fixé aux jours réels écoulés
+      const daysDivisor = isCurrentMonth 
+        ? Math.max(1, Math.min(now.getDate(), totalDaysInMonth))
+        : totalDaysInMonth;
+
+      const catalogue = getCatalogue();
+      const events = getStoredEvents();
+
+      const filteredItems = catalogue.filter(c => domainFilter === 'all' || c.domain === domainFilter);
+
+      filteredItems.forEach(item => {
+        const itemEvents = events.filter(e => {
+          if (e.action !== item.id) return false;
+          const d = new Date(e.timestamp);
+          return d.getFullYear() === year && d.getMonth() === monthIndex;
+        });
+
+        const occurrences = itemEvents.length;
+        const totalVal = itemEvents.reduce((acc, cur) => acc + Number(cur.value || 0), 0);
+        const dailyAvg = (totalVal / daysDivisor).toFixed(1);
+
+        let formattedTotal = `${Math.round(totalVal * 10) / 10} ${item.unit || ''}`;
+        if (item.mode === 'timer') {
+          const totalMinutes = item.unit === 'h' ? totalVal * 60 : (item.unit === 'sec' ? totalVal / 60 : totalVal);
+          const h = Math.floor(totalMinutes / 60);
+          const m = Math.round(totalMinutes % 60);
+          formattedTotal = `${h} h ${String(m).padStart(2, '0')} min`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.emoji || '•'} ${item.label}</strong></td>
+          <td>${occurrences}</td>
+          <td>${formattedTotal}</td>
+          <td>${dailyAvg} / j</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* =========================================================
+       MATRICE 24H CIRCADIENNE (FENÊTRE 07H00 ➔ 07H00 J+1)
+       ========================================================= */
+    function render24hMatrix() {
+      const container = document.getElementById('matrix-days-container');
+      // Conserver les 3 repères verticaux fixes (12h, 18h, 00h)
+      container.innerHTML = `
+        <div class="matrix-grid-guides">
+          <div class="grid-line l-12h"></div>
+          <div class="grid-line l-18h"></div>
+          <div class="grid-line l-00h"></div>
+        </div>
+      `;
+
+      const monthInput = document.getElementById('stats-month-selector').value;
+      const domainFilter = document.getElementById('matrix-domain-filter').value;
+      const behaviorFilter = document.getElementById('matrix-behavior-filter').value;
+
+      if (!monthInput) return;
+
+      const [yearStr, monthStr] = monthInput.split('-');
+      const year = parseInt(yearStr, 10);
+      const monthIndex = parseInt(monthStr, 10) - 1;
+      const totalDaysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+      const events = getStoredEvents();
+      const catalogue = getCatalogue();
+      const tooltip = document.getElementById('matrix-tooltip');
+
+      const MS_IN_24H = 86400000;
+
+      for (let day = 1; day <= totalDaysInMonth; day++) {
+        // Fenêtre circadienne : Jour J à 07:00:00 jusqu'à Jour J+1 à 07:00:00
+        const winStart = new Date(year, monthIndex, day, 7, 0, 0, 0).getTime();
+        const winEnd = winStart + MS_IN_24H;
+
+        const row = document.createElement('div');
+        row.className = 'matrix-row';
+
+        const label = document.createElement('div');
+        label.className = 'matrix-day-label';
+        label.textContent = `J${String(day).padStart(2, '0')}`;
+        row.appendChild(label);
+
+        const track = document.createElement('div');
+        track.className = 'matrix-track';
+
+        // Filtrage des événements chevauchant cette fenêtre circadienne
+        events.forEach(evt => {
+          const item = catalogue.find(c => c.id === evt.action);
+          if (!item || item.mode !== 'timer') return;
+
+          // Filtre par domaine
+          if (domainFilter !== 'all' && item.domain !== domainFilter) return;
+
+          // Filtre par comportement
+          if (behaviorFilter !== 'all_timers' && item.id !== behaviorFilter) return;
+
+          // Calcul des millisecondes réelles
+          let durMs = Number(evt.value || 0) * 60000;
+          if (evt.unit === 'h') durMs = Number(evt.value || 0) * 3600000;
+          if (evt.unit === 'sec') durMs = Number(evt.value || 0) * 1000;
+
+          const endTime = new Date(evt.timestamp).getTime();
+          const startTime = endTime - durMs;
+
+          // Test de chevauchement sur la plage de 24 heures
+          if (Math.max(startTime, winStart) < Math.min(endTime, winEnd)) {
+            const segStart = Math.max(startTime, winStart);
+            const segEnd = Math.min(endTime, winEnd);
+
+            const leftPct = ((segStart - winStart) / MS_IN_24H) * 100;
+            const widthPct = Math.max(0.6, ((segEnd - segStart) / MS_IN_24H) * 100);
+
+            const block = document.createElement('div');
+            block.className = 'matrix-block';
+            block.style.left = `${leftPct}%`;
+            block.style.width = `${widthPct}%`;
+            block.style.backgroundColor = getDomainColor(item.domain);
+
+            // Données tactiles du bloc
+            const startStr = new Date(startTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const endStr = new Date(endTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const durMin = Math.round(durMs / 60000);
+            const durFormatted = durMin >= 60 
+              ? `${Math.floor(durMin / 60)} h ${String(durMin % 60).padStart(2, '0')} min` 
+              : `${durMin} min`;
+
+            block.onclick = (e) => {
+              e.stopPropagation();
+              tooltip.textContent = `J${String(day).padStart(2, '0')} • ${startStr} - ${endStr} (${durFormatted}) — ${item.label}`;
+            };
+
+            track.appendChild(block);
+          }
+        });
+
+        row.appendChild(track);
+        container.appendChild(row);
+      }
+    }
+
+    /* Synchronisation des filtres de la matrice */
+    function syncMatrixFilterSelectors() {
+      const domainSelect = document.getElementById('matrix-domain-filter');
+      const behaviorSelect = document.getElementById('matrix-behavior-filter');
+      const catalogue = getCatalogue();
+      const selectedDomain = domainSelect.value;
+
+      behaviorSelect.innerHTML = '<option value="all_timers">Tous les chronomètres</option>';
+      const timerItems = catalogue.filter(c => c.mode === 'timer' && (selectedDomain === 'all' || c.domain === selectedDomain));
+
+      timerItems.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = `${item.emoji || '•'} ${item.label}`;
+        behaviorSelect.appendChild(opt);
+      });
+    }
+
+    /* =========================================================
+       MODALE D'ANTIDATAGE (RATTRAPAGE HORODATÉ)
+       ========================================================= */
+    function openRetroModal(actionId) {
+      retroBehaviorId = actionId;
+      const cat = getCatalogue();
+      const item = cat.find(c => c.id === actionId);
+      if (!item) return;
+
+      document.getElementById('retro-modal-title').textContent = `🕒 Rattrapage : ${item.emoji || ''} ${item.label}`;
+      document.getElementById('retro-value').value = item.defaultValue || 1;
+      document.getElementById('retro-notes').value = '';
+
+      // Format datetime-local par défaut sur l'instant présent
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('retro-datetime').value = now.toISOString().slice(0, 16);
+
+      document.getElementById('retro-modal').classList.add('open');
+    }
+
+    document.getElementById('retro-cancel-btn').onclick = () => {
+      document.getElementById('retro-modal').classList.remove('open');
+      retroBehaviorId = null;
+    };
+
+    document.getElementById('retro-save-btn').onclick = () => {
+      if (!retroBehaviorId) return;
+      const cat = getCatalogue();
+      const item = cat.find(c => c.id === retroBehaviorId);
+      const dtValue = document.getElementById('retro-datetime').value;
+      const val = document.getElementById('retro-value').value;
+      const notes = document.getElementById('retro-notes').value;
+
+      if (!dtValue || !val) return;
+
+      logEvent(retroBehaviorId, Number(val), item.unit, notes, new Date(dtValue).toISOString());
+      document.getElementById('retro-modal').classList.remove('open');
+      retroBehaviorId = null;
+    };
+
+    /* =========================================================
+       GESTION DU CATALOGUE (ACCORDÉONS & FORMULAIRE)
+       ========================================================= */
+    function renderCatalogueUI() {
+      const container = document.getElementById('catalogue-accordions-container');
+      container.innerHTML = '';
+      const domains = getDomains();
+      const catalogue = getCatalogue();
+
+      domains.forEach(domain => {
         const details = document.createElement('details');
         details.className = 'domain-accordion';
-        details.dataset.domain = dom;
-        if (openDomains.has(dom)) details.open = true;
 
+        const items = catalogue.filter(c => c.domain === domain);
         const summary = document.createElement('summary');
-        summary.className = 'domain-summary';
-
-        const colorPill = `<span class="domain-color-pill" style="background:${getDomainColor(dom)};"></span>`;
-        const countText = `${linked.length} habitude${linked.length > 1 ? 's' : ''}`;
-
-        summary.innerHTML = `
-          <div class="domain-summary-left">
-            ${colorPill}
-            <span class="domain-title-text">${dom.charAt(0).toUpperCase() + dom.slice(1)}</span>
-            <span class="domain-badge-count">${countText}</span>
-          </div>
-          <div class="domain-summary-right">
-            <button class="btn-domain-delete-sm" data-domain="${dom}" title="Supprimer le domaine">Suppr.</button>
-            <span class="domain-chevron">▼</span>
-          </div>
-        `;
-
-        summary.querySelector('.btn-domain-delete-sm').addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteDomain(dom);
-        });
-
-        const body = document.createElement('div');
-        body.className = 'domain-accordion-body';
-
-        if (linked.length === 0) {
-          body.innerHTML = '<div style="font-size:0.8rem; color:#94a3b8; padding: 4px;">Aucun comportement dans ce domaine.</div>';
-        } else {
-          linked.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'admin-item';
-            const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
-            const shortcutTag = item.isShortcut ? ' • ⚪ Raccourci' : '';
-            row.innerHTML = `
-              <div class="admin-item-info">
-                <span class="admin-item-name">${emojiPrefix}${item.label}</span>
-                <span class="admin-item-meta">${item.mode === 'timer' ? '⏱ Chrono' : '⚡ Clic'} (${item.unit})${shortcutTag}</span>
-              </div>
-              <div class="admin-item-actions">
-                <button class="btn-item-edit" data-id="${item.id}">Éditer</button>
-                <button class="btn-item-delete" data-id="${item.id}">Suppr.</button>
-              </div>
-            `;
-            row.querySelector('.btn-item-edit').addEventListener('click', () => loadBehaviorInForm(item.id));
-            row.querySelector('.btn-item-delete').addEventListener('click', () => deleteBehavior(item.id));
-            body.appendChild(row);
-          });
-        }
-
-        const addBtn = document.createElement('button');
-        addBtn.className = 'btn-domain-add-beh';
-        addBtn.textContent = `+ Ajouter un comportement dans ${dom.charAt(0).toUpperCase() + dom.slice(1)}`;
-        addBtn.addEventListener('click', () => {
-          resetForm();
-          fieldDomain.value = dom;
-          formTitle.textContent = `Ajouter dans « ${dom.charAt(0).toUpperCase() + dom.slice(1)} »`;
-          cardBehaviorForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          fieldLabel.focus();
-        });
-        body.appendChild(addBtn);
-
+        summary.textContent = `${domain} (${items.length})`;
         details.appendChild(summary);
-        details.appendChild(body);
-        domainsTreeContainer.appendChild(details);
-      });
-    }
 
-    function renderDomainSelect(selectedVal = '') {
-      const domains = getDomains().sort();
-      fieldDomain.innerHTML = '';
-      domains.forEach(dom => {
-        const opt = document.createElement('option');
-        opt.value = dom;
-        opt.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-        if (dom === selectedVal) opt.selected = true;
-        fieldDomain.appendChild(opt);
-      });
-    }
-
-    function updateFormModeUI() {
-      if (fieldMode.value === 'timer') {
-        labelDefault.textContent = 'Durée indicative (optionnel)';
-        fieldUnit.style.display = 'none';
-        fieldUnit.removeAttribute('required');
-        fieldUnitSelect.style.display = 'block';
-        if (!fieldUnitSelect.value) fieldUnitSelect.value = 'min';
-      } else {
-        labelDefault.textContent = 'Valeur par clic (optionnel)';
-        fieldUnitSelect.style.display = 'none';
-        fieldUnit.style.display = 'block';
-        fieldUnit.setAttribute('required', 'required');
-      }
-    }
-    fieldMode.addEventListener('change', updateFormModeUI);
-
-    function resetForm() {
-      behaviorForm.reset();
-      fieldId.value = '';
-      fieldEmoji.value = '';
-      fieldIsShortcut.checked = false;
-      groupShortcutColor.style.display = 'none';
-      fieldShortcutColor.value = '#2563eb';
-      fieldMode.value = 'instant';
-      fieldPhase.value = 'baseline';
-      fieldUnitSelect.value = 'min';
-      formTitle.textContent = 'Ajouter un comportement';
-      btnCancel.style.display = 'none';
-      renderDomainSelect();
-      updateFormModeUI();
-    }
-
-    function loadBehaviorInForm(id) {
-      const item = getCatalogue().find(c => c.id === id);
-      if (!item) return;
-      fieldId.value = item.id;
-      fieldLabel.value = item.label;
-      fieldEmoji.value = item.emoji || '';
-      fieldIsShortcut.checked = Boolean(item.isShortcut);
-      groupShortcutColor.style.display = item.isShortcut ? 'flex' : 'none';
-      fieldShortcutColor.value = item.shortcutColor || getDomainColor(item.domain);
-      renderDomainSelect(item.domain.toLowerCase());
-      fieldMode.value = item.mode || 'instant';
-      if (fieldMode.value === 'timer') {
-        fieldUnitSelect.value = ['min', 'sec', 'h'].includes(item.unit) ? item.unit : 'min';
-        fieldUnit.value = '';
-      } else {
-        fieldUnit.value = item.unit || '';
-      }
-      fieldDefault.value = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : '';
-      fieldPhase.value = item.phase || 'baseline';
-      fieldDirection.value = item.target ? item.target.direction : 'increase';
-      fieldBaseline.value = (item.target && item.target.baseline !== null && item.target.baseline !== undefined) ? item.target.baseline : '';
-      fieldStep.value = (item.target && item.target.currentStep !== null && item.target.currentStep !== undefined) ? item.target.currentStep : '';
-      fieldFinal.value = (item.target && item.target.finalTarget !== null && item.target.finalTarget !== undefined) ? item.target.finalTarget : '';
-      formTitle.textContent = `Modifier : ${item.label}`;
-      btnCancel.style.display = 'inline-block';
-      updateFormModeUI();
-      cardBehaviorForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function deleteBehavior(id) {
-      const item = getCatalogue().find(c => c.id === id);
-      if (!item || !confirm(`Supprimer « ${item.label} » du catalogue ?`)) return;
-      saveCatalogue(getCatalogue().filter(c => c.id !== id));
-      const timers = getActiveTimers();
-      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); }
-      refreshAllUI();
-      if (fieldId.value === id) resetForm();
-    }
-
-    behaviorForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const catalogue = getCatalogue();
-      const editingId = fieldId.value;
-      const chosenUnit = fieldMode.value === 'timer' ? fieldUnitSelect.value : fieldUnit.value.trim().toLowerCase();
-      const existingItem = editingId ? catalogue.find(c => c.id === editingId) : null;
-      const behaviorData = {
-        id: editingId || 'beh_' + Date.now().toString(36),
-        label: fieldLabel.value.trim(),
-        emoji: fieldEmoji.value.trim() || null,
-        isShortcut: fieldIsShortcut.checked,
-        shortcutColor: fieldIsShortcut.checked ? fieldShortcutColor.value : null,
-        domain: fieldDomain.value.trim().toLowerCase(),
-        mode: fieldMode.value,
-        unit: chosenUnit,
-        defaultValue: fieldDefault.value !== '' ? Number(fieldDefault.value) : (fieldMode.value === 'timer' ? null : 1),
-        phase: fieldPhase.value,
-        trackElapsed: existingItem && existingItem.trackElapsed ? true : false,
-        target: {
-          direction: fieldDirection.value,
-          period: 'jour',
-          baseline: fieldBaseline.value !== '' ? Number(fieldBaseline.value) : null,
-          currentStep: fieldStep.value !== '' ? Number(fieldStep.value) : null,
-          finalTarget: fieldFinal.value !== '' ? Number(fieldFinal.value) : null
-        }
-      };
-      if (editingId) {
-        const idx = catalogue.findIndex(c => c.id === editingId);
-        if (idx !== -1) catalogue[idx] = behaviorData;
-      } else {
-        catalogue.push(behaviorData);
-      }
-      saveCatalogue(catalogue);
-      resetForm();
-      refreshAllUI();
-    });
-    btnCancel.addEventListener('click', resetForm);
-
-    function startTimer(id) {
-      const timers = getActiveTimers();
-      timers[id] = Date.now();
-      saveActiveTimers(timers);
-      refreshAllUI();
-    }
-    function cancelTimer(id) {
-      const timers = getActiveTimers();
-      if (timers[id]) { delete timers[id]; saveActiveTimers(timers); refreshAllUI(); }
-    }
-    function stopTimer(id) {
-      const timers = getActiveTimers();
-      const startTime = timers[id];
-      if (!startTime) return;
-      const endTime = Date.now();
-      const elapsedMs = endTime - startTime;
-      const item = getCatalogue().find(c => c.id === id);
-      if (!item) return;
-
-      const unit = (item.unit || 'min').toLowerCase();
-      let val = 0;
-      if (unit === 'sec') val = Math.floor(elapsedMs / 1000);
-      else if (unit === 'h') val = Math.round((elapsedMs / 3600000) * 100) / 100;
-      else val = Math.round((elapsedMs / 60000) * 100) / 100;
-
-      const fmt = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const rawSec = Math.floor(elapsedMs / 1000);
-      const note = `Session : ${fmt(new Date(startTime))} -> ${fmt(new Date(endTime))} (durée brute : ${rawSec} s)`;
-
-      delete timers[id];
-      saveActiveTimers(timers);
-      logEvent({ domain: item.domain, action: item.id, value: val, unit: item.unit, notes: note });
-      refreshAllUI();
-    }
-
-    function updateActiveTimerDisplays() {
-      const timers = getActiveTimers();
-      const displays = document.querySelectorAll('.timer-display-live');
-      const now = Date.now();
-      displays.forEach(el => {
-        const id = el.dataset.behaviorId;
-        const st = timers[id];
-        if (!st) return;
-        const sec = Math.floor((now - st) / 1000);
-        const h = Math.floor(sec / 3600);
-        const m = Math.floor((sec % 3600) / 60);
-        const s = sec % 60;
-        const pad = n => String(n).padStart(2, '0');
-        el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-      });
-    }
-
-    function renderShortcutBars() {
-      const catalogue = getCatalogue();
-      const activeTimers = getActiveTimers();
-      const shortcuts = catalogue.filter(c => c.isShortcut === true);
-
-      [shortcutBarApp, shortcutBarDashboard].forEach(container => {
-        if (!container) return;
-        container.innerHTML = '';
-        if (shortcuts.length === 0) {
-          container.style.display = 'none';
-          return;
-        }
-        container.style.display = 'flex';
-
-        shortcuts.forEach(item => {
-          const btn = document.createElement('button');
-          const isRunning = item.mode === 'timer' && Boolean(activeTimers[item.id]);
-          btn.className = `shortcut-bubble ${isRunning ? 'running' : ''}`;
-          btn.style.backgroundColor = item.shortcutColor || getDomainColor(item.domain);
-          btn.title = item.label;
-
-          btn.textContent = item.emoji || item.label.slice(0, 2).toUpperCase();
-          if (!item.emoji) {
-            btn.style.color = '#ffffff';
-            btn.style.fontSize = '0.9rem';
-            btn.style.fontWeight = '700';
-          }
-
-          btn.addEventListener('click', () => {
-            if (item.mode === 'timer') {
-              if (isRunning) stopTimer(item.id);
-              else startTimer(item.id);
-            } else {
-              const val = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : 1;
-              logEvent({ domain: item.domain, action: item.id, value: val, unit: item.unit });
-            }
-          });
-          container.appendChild(btn);
+        items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'cat-item';
+          div.innerHTML = `
+            <span><strong>${item.emoji || '•'} ${item.label}</strong> (${item.mode}, ${item.phase})</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-icon" onclick="editBehavior('${item.id}')">✏️</button>
+              <button class="btn-icon" onclick="deleteBehavior('${item.id}')">🗑️</button>
+            </div>
+          `;
+          details.appendChild(div);
         });
+
+        container.appendChild(details);
       });
-    }
 
-    /* GESTION ET CALCULS DES STATISTIQUES MENSUELLES & MATRICE 24H */
-    function initStatsControls() {
-      if (!statsMonthPicker.value) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        statsMonthPicker.value = `${year}-${month}`;
-      }
-
-      const domains = getDomains().sort();
-      const curDom = statsDomainFilter.value;
-      statsDomainFilter.innerHTML = '<option value="all">Tous les domaines</option>';
+      // Synchronisation du select domaine du formulaire
+      const catDomainSelect = document.getElementById('cat-domain');
+      catDomainSelect.innerHTML = '';
       domains.forEach(d => {
         const opt = document.createElement('option');
         opt.value = d;
-        opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
-        if (d === curDom) opt.selected = true;
-        statsDomainFilter.appendChild(opt);
-      });
-
-      const catalogue = getCatalogue();
-      const curBeh = matrixBehaviorSelect.value;
-      matrixBehaviorSelect.innerHTML = '<option value="all_timers">Tous les chronomètres</option>';
-      catalogue.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.id;
-        const prefix = item.emoji ? `${item.emoji} ` : '';
-        opt.textContent = `${prefix}${item.label} (${item.mode === 'timer' ? '⏱' : '⚡'})`;
-        if (item.id === curBeh) opt.selected = true;
-        matrixBehaviorSelect.appendChild(opt);
+        opt.textContent = d;
+        catDomainSelect.appendChild(opt);
       });
     }
 
-    function renderMonthlyStatistics() {
+    function editBehavior(id) {
       const catalogue = getCatalogue();
-      const events = getStoredEvents();
-      const monthVal = statsMonthPicker.value;
-      if (!monthVal) return;
-
-      const [selYear, selMonth] = monthVal.split('-').map(Number);
-      const startOfMonth = new Date(selYear, selMonth - 1, 1).getTime();
-      const endOfMonth = new Date(selYear, selMonth, 1).getTime();
-
-      const monthEvents = events.filter(e => {
-        const t = new Date(e.timestamp).getTime();
-        return t >= startOfMonth && t < endOfMonth;
-      });
-
-      const domFilter = statsDomainFilter.value;
-      let targetCatalogue = domFilter === 'all' ? catalogue : catalogue.filter(c => c.domain.toLowerCase() === domFilter);
-
-      statsTableBody.innerHTML = '';
-      if (targetCatalogue.length === 0) {
-        statsTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:12px;">Aucun comportement sous ce domaine.</td></tr>';
-      } else {
-        const now = new Date();
-        const isCurrentMonth = (now.getFullYear() === selYear && (now.getMonth() + 1) === selMonth);
-        const daysInMonth = new Date(selYear, selMonth, 0).getDate();
-        const elapsedDays = isCurrentMonth ? Math.max(1, now.getDate()) : daysInMonth;
-
-        targetCatalogue.forEach(item => {
-          const itemEvents = monthEvents.filter(e => e.action === item.id || (e.domain === item.domain && e.action === item.label));
-          const count = itemEvents.length;
-          const rawSum = itemEvents.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
-
-          let displayVol = '0';
-          let displayAvg = '0';
-
-          if (item.mode === 'timer') {
-            const unit = (item.unit || 'min').toLowerCase();
-            let totalMinutes = 0;
-            if (unit === 'h') totalMinutes = rawSum * 60;
-            else if (unit === 'sec') totalMinutes = rawSum / 60;
-            else totalMinutes = rawSum;
-
-            const h = Math.floor(totalMinutes / 60);
-            const m = Math.round(totalMinutes % 60);
-            displayVol = h > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`;
-
-            const avgMinPerDay = totalMinutes / elapsedDays;
-            displayAvg = avgMinPerDay >= 60
-              ? `${(avgMinPerDay / 60).toFixed(1)} h/j`
-              : `${Math.round(avgMinPerDay)} min/j`;
-          } else {
-            const roundedSum = Number.isInteger(rawSum) ? rawSum : rawSum.toFixed(1);
-            displayVol = `${roundedSum} ${item.unit}`;
-            const avgPerDay = (rawSum / elapsedDays).toFixed(1);
-            displayAvg = `${avgPerDay} / j`;
-          }
-
-          const tr = document.createElement('tr');
-          const prefix = item.emoji ? `${item.emoji} ` : '';
-          tr.innerHTML = `
-            <td><strong>${prefix}${item.label}</strong></td>
-            <td>${count}</td>
-            <td>${displayVol}</td>
-            <td style="color:#64748b;">${displayAvg}</td>
-          `;
-          statsTableBody.appendChild(tr);
-        });
-      }
-
-      renderMatrix24h(selYear, selMonth, monthEvents);
-    }
-
-    function renderMatrix24h(year, month, monthEvents) {
-      matrixDaysList.innerHTML = '';
-      const daysCount = new Date(year, month, 0).getDate();
-      const catalogue = getCatalogue();
-      const catMap = new Map(catalogue.map(c => [c.id, c]));
-      const selTarget = matrixBehaviorSelect.value;
-
-      const dayNames = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
-
-      for (let d = 1; d <= daysCount; d++) {
-        const dayDate = new Date(year, month - 1, d);
-        const dayStartMs = new Date(year, month - 1, d, 0, 0, 0).getTime();
-        const dayEndMs = new Date(year, month - 1, d, 23, 59, 59, 999).getTime();
-
-        const row = document.createElement('div');
-        row.className = 'matrix-day-row';
-
-        const dayName = dayNames[dayDate.getDay()];
-        const label = document.createElement('div');
-        label.className = 'matrix-day-label';
-        label.textContent = `${String(d).padStart(2, '0')} ${dayName.charAt(0)}`;
-        row.appendChild(label);
-
-        const bar = document.createElement('div');
-        bar.className = 'matrix-day-bar';
-
-        monthEvents.forEach(evt => {
-          const item = catMap.get(evt.action);
-          if (!item) return;
-
-          if (selTarget === 'all_timers') {
-            if (item.mode !== 'timer') return;
-          } else if (selTarget !== item.id) {
-            return;
-          }
-
-          const evtEndMs = new Date(evt.timestamp).getTime();
-          let durMs = 0;
-          if (item.mode === 'timer') {
-            const unit = (item.unit || 'min').toLowerCase();
-            const val = Number(evt.value) || 0;
-            if (unit === 'h') durMs = val * 3600000;
-            else if (unit === 'sec') durMs = val * 1000;
-            else durMs = val * 60000;
-          } else {
-            durMs = 600000; // 10 minutes d'affichage pour un clic instantané
-          }
-
-          const evtStartMs = evtEndMs - durMs;
-
-          if (evtEndMs < dayStartMs || evtStartMs > dayEndMs) return;
-
-          const visibleStartMs = Math.max(dayStartMs, evtStartMs);
-          const visibleEndMs = Math.min(dayEndMs, evtEndMs);
-          const visibleDurMs = visibleEndMs - visibleStartMs;
-
-          const leftPct = ((visibleStartMs - dayStartMs) / 86400000) * 100;
-          const widthPct = Math.max(0.7, (visibleDurMs / 86400000) * 100);
-
-          const seg = document.createElement('div');
-          seg.className = 'matrix-segment';
-          seg.style.left = `${leftPct}%`;
-          seg.style.width = `${widthPct}%`;
-          seg.style.backgroundColor = item.shortcutColor || getDomainColor(item.domain);
-          seg.title = `${item.label} : ${new Date(evtStartMs).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} -> ${new Date(evtEndMs).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
-          bar.appendChild(seg);
-        });
-
-        row.appendChild(bar);
-        matrixDaysList.appendChild(row);
-      }
-    }
-
-    statsMonthPicker.addEventListener('change', renderMonthlyStatistics);
-    statsDomainFilter.addEventListener('change', renderMonthlyStatistics);
-    matrixBehaviorSelect.addEventListener('change', renderMonthlyStatistics);
-
-    function renderDashboardView() {
-      const catalogue = getCatalogue();
-      const events = getStoredEvents();
-      const activeTimers = getActiveTimers();
-      const activeIds = Object.keys(activeTimers);
-
-      activeTimersContainer.innerHTML = '';
-      if (activeIds.length === 0) {
-        activeTimersContainer.innerHTML = '<div class="empty-state-box">⏱ Aucun chronomètre actif en ce moment.</div>';
-      } else {
-        activeIds.forEach(id => {
-          const item = catalogue.find(c => c.id === id);
-          if (!item) return;
-          const card = document.createElement('div');
-          card.className = 'live-timer-card';
-          const emojiIcon = item.emoji || '⏱';
-          card.innerHTML = `
-            <div class="live-timer-left">
-              <span class="live-timer-emoji">${emojiIcon}</span>
-              <div class="live-timer-text">
-                <span class="live-timer-label">${item.label}</span>
-                <span class="live-timer-domain">${item.domain}</span>
-              </div>
-            </div>
-            <div class="live-timer-right">
-              <span class="live-timer-display timer-display-live" data-behavior-id="${item.id}">00:00</span>
-              <button class="btn-live-stop" data-id="${item.id}">⏹ Stop</button>
-              <button class="btn-live-cancel" data-id="${item.id}" title="Annuler">✕</button>
-            </div>
-          `;
-          card.querySelector('.btn-live-stop').addEventListener('click', () => stopTimer(item.id));
-          card.querySelector('.btn-live-cancel').addEventListener('click', () => cancelTimer(item.id));
-          activeTimersContainer.appendChild(card);
-        });
-      }
-
-      const targetStreakItem = catalogue.find(c => c.trackElapsed === true);
-      if (!targetStreakItem) {
-        dashboardStreakCard.style.display = 'none';
-      } else {
-        dashboardStreakCard.style.display = 'flex';
-        dashboardStreakIcon.textContent = targetStreakItem.emoji || '⏳';
-        dashboardStreakLabel.textContent = targetStreakItem.label;
-
-        const streakEvents = events.filter(e => e.action === targetStreakItem.id || (e.domain === targetStreakItem.domain && e.action === targetStreakItem.label));
-        let lastTimestamp = DEFAULT_STREAK_EPOCH;
-        if (streakEvents.length > 0) {
-          const timestamps = streakEvents.map(e => new Date(e.timestamp).getTime()).filter(t => !isNaN(t));
-          if (timestamps.length > 0) lastTimestamp = Math.max(...timestamps);
-        }
-
-        const elapsedMs = Math.max(0, Date.now() - lastTimestamp);
-        const totalSec = Math.floor(elapsedMs / 1000);
-        const days = Math.floor(totalSec / 86400);
-        const hours = Math.floor((totalSec % 86400) / 3600);
-        const mins = Math.floor((totalSec % 3600) / 60);
-        const pad = n => String(n).padStart(2, '0');
-
-        dashboardStreakCounter.textContent = days > 0
-          ? `${days} j ${pad(hours)} h ${pad(mins)} min`
-          : `${pad(hours)} h ${pad(mins)} min`;
-      }
-
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayStartTime = todayStart.getTime();
-
-      todaySummaryList.innerHTML = '';
-      if (catalogue.length === 0) {
-        todaySummaryList.innerHTML = '<div class="empty-state-box">Aucun comportement configuré.</div>';
-      } else {
-        catalogue.forEach(item => {
-          const todaySum = events
-            .filter(e => (e.action === item.id || (e.domain === item.domain && e.action === item.label)) && new Date(e.timestamp).getTime() >= todayStartTime)
-            .reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
-          const formattedSum = Number.isInteger(todaySum) ? todaySum : todaySum.toFixed(2);
-          const isBaseline = (item.phase || 'baseline') === 'baseline';
-
-          let statusText = '';
-          if (isBaseline) {
-            statusText = `${formattedSum} ${item.unit} (obs)`;
-          } else {
-            const step = (item.target && item.target.currentStep !== null) ? item.target.currentStep : null;
-            const dir = item.target ? item.target.direction : 'increase';
-            if (step !== null) {
-              const ok = dir === 'decrease' ? todaySum <= step : todaySum >= step;
-              const color = ok ? '#16a34a' : (dir === 'decrease' ? '#dc2626' : '#64748b');
-              statusText = `<span style="color:${color};">${formattedSum} / ${step} ${item.unit}</span>`;
-            } else {
-              statusText = `${formattedSum} ${item.unit}`;
-            }
-          }
-
-          const div = document.createElement('div');
-          div.className = 'summary-card';
-          const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
-          div.innerHTML = `
-            <div class="summary-card-left">
-              <span style="width:8px; height:8px; border-radius:50%; background:${getDomainColor(item.domain)};"></span>
-              <span>${emojiPrefix}${item.label}</span>
-            </div>
-            <div class="summary-card-right">${statusText}</div>
-          `;
-          todaySummaryList.appendChild(div);
-        });
-      }
-
-      initStatsControls();
-      renderMonthlyStatistics();
-    }
-
-    function renderCategoryBar() {
-      const domains = getDomains().sort();
-      categoryBar.innerHTML = '';
-      const all = document.createElement('button');
-      all.className = `cat-chip ${selectedDomainFilter === 'all' ? 'active' : ''}`;
-      all.textContent = 'Tous';
-      all.addEventListener('click', () => { selectedDomainFilter = 'all'; renderCategoryBar(); renderActionRows(); });
-      categoryBar.appendChild(all);
-
-      domains.forEach(dom => {
-        const chip = document.createElement('button');
-        chip.className = `cat-chip ${selectedDomainFilter === dom ? 'active' : ''}`;
-        chip.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-        chip.addEventListener('click', () => { selectedDomainFilter = dom; renderCategoryBar(); renderActionRows(); });
-        categoryBar.appendChild(chip);
-      });
-    }
-
-    function openRowRetroModal(behaviorId) {
-      const item = getCatalogue().find(c => c.id === behaviorId);
+      const item = catalogue.find(c => c.id === id);
       if (!item) return;
 
-      rowRetroBehaviorId.value = item.id;
-      const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
-      retroModalTitle.textContent = `🕒 Rattrapage : ${emojiPrefix}${item.label}`;
-
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      rowRetroDatetime.value = now.toISOString().slice(0, 16);
-
-      const defVal = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : (item.mode === 'timer' ? 15 : 1);
-      rowRetroVal.value = defVal;
-      rowRetroValLabel.textContent = `Valeur (${item.unit})`;
-
-      retroModalOverlay.classList.add('open');
+      editingBehaviorId = id;
+      document.getElementById('cat-form-title').textContent = 'Modifier une habitude';
+      document.getElementById('cat-label').value = item.label;
+      document.getElementById('cat-emoji').value = item.emoji || '';
+      document.getElementById('cat-domain').value = item.domain;
+      document.getElementById('cat-mode').value = item.mode;
+      document.getElementById('cat-unit').value = item.unit || '';
+      document.getElementById('cat-phase').value = item.phase || 'baseline';
+      document.getElementById('cat-track-elapsed').checked = Boolean(item.trackElapsed);
+      document.getElementById('cat-cancel-btn').style.display = 'inline-block';
     }
 
-    function closeRowRetroModal() {
-      retroModalOverlay.classList.remove('open');
-      rowRetroBehaviorId.value = '';
+    function deleteBehavior(id) {
+      if (!confirm('Supprimer ce comportement et ses définitions ?')) return;
+      let catalogue = getCatalogue();
+      catalogue = catalogue.filter(c => c.id !== id);
+      saveCatalogue(catalogue);
+      refreshAllUI();
     }
 
-    retroModalClose.addEventListener('click', closeRowRetroModal);
-    rowRetroCancel.addEventListener('click', closeRowRetroModal);
-    retroModalOverlay.addEventListener('click', (e) => {
-      if (e.target === retroModalOverlay) closeRowRetroModal();
-    });
+    document.getElementById('cat-cancel-btn').onclick = () => {
+      editingBehaviorId = null;
+      document.getElementById('cat-form-title').textContent = 'Ajouter une habitude';
+      document.getElementById('cat-label').value = '';
+      document.getElementById('cat-emoji').value = '';
+      document.getElementById('cat-unit').value = '';
+      document.getElementById('cat-cancel-btn').style.display = 'none';
+    };
 
-    rowRetroForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const bId = rowRetroBehaviorId.value;
-      const item = getCatalogue().find(c => c.id === bId);
-      if (!item) return;
+    document.getElementById('cat-save-btn').onclick = () => {
+      const label = document.getElementById('cat-label').value.trim();
+      const emoji = document.getElementById('cat-emoji').value.trim();
+      const domain = document.getElementById('cat-domain').value;
+      const mode = document.getElementById('cat-mode').value;
+      const unit = document.getElementById('cat-unit').value.trim();
+      const phase = document.getElementById('cat-phase').value;
+      const trackElapsed = document.getElementById('cat-track-elapsed').checked;
 
-      const chosenDate = new Date(rowRetroDatetime.value);
-      if (isNaN(chosenDate.getTime())) {
-        alert('Date ou heure invalide');
-        return;
-      }
+      if (!label) return;
 
-      const valNum = Number(rowRetroVal.value);
-      const finalVal = isNaN(valNum) ? (item.defaultValue ?? 1) : valNum;
+      let catalogue = getCatalogue();
 
-      logEvent({
-        domain: item.domain,
-        action: item.id,
-        value: finalVal,
-        unit: item.unit,
-        timestamp: chosenDate.toISOString(),
-        notes: 'Rattrapage direct'
-      });
-
-      closeRowRetroModal();
-    });
-
-    function renderActionRows() {
-      const catalogue = getCatalogue();
-      const events = getStoredEvents();
-      const activeTimers = getActiveTimers();
-      dashboardTiles.innerHTML = '';
-
-      let filtered = selectedDomainFilter === 'all' ? catalogue : catalogue.filter(c => c.domain.toLowerCase() === selectedDomainFilter);
-      if (filtered.length === 0) {
-        dashboardTiles.innerHTML = '<div style="font-size:0.85rem; color:#888; text-align:center; padding:20px;">Aucun comportement sous cette thématique.</div>';
-        return;
-      }
-
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayStartTime = todayStart.getTime();
-
-      filtered.forEach(item => {
-        const row = document.createElement('div');
-        const isTimer = item.mode === 'timer';
-        const isRunning = isTimer && Boolean(activeTimers[item.id]);
-        row.className = `behavior-row ${isRunning ? 'running' : ''}`;
-        row.style.borderLeftColor = getDomainColor(item.domain);
-
-        const todaySum = events
-          .filter(e => (e.action === item.id || (e.domain === item.domain && e.action === item.label)) && new Date(e.timestamp).getTime() >= todayStartTime)
-          .reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
-        const formattedSum = Number.isInteger(todaySum) ? todaySum : todaySum.toFixed(2);
-        const isBaseline = (item.phase || 'baseline') === 'baseline';
-
-        let subtextHtml = '';
-        if (isRunning) {
-          subtextHtml = `⏱ <span class="timer-display-live" data-behavior-id="${item.id}">00:00</span> <span style="font-size:0.72rem; color:#16a34a; font-weight:600;">(en cours)</span>`;
-        } else if (isBaseline) {
-          subtextHtml = `Aujourd'hui : <strong>${formattedSum}</strong> ${item.unit} <span style="font-size:0.7rem; color:#94a3b8;">(obs)</span>`;
-        } else {
-          const step = (item.target && item.target.currentStep !== null) ? item.target.currentStep : null;
-          const dir = item.target ? item.target.direction : 'increase';
-          if (step !== null) {
-            const ok = dir === 'decrease' ? todaySum <= step : todaySum >= step;
-            const cls = ok ? 'success' : (dir === 'decrease' ? 'alert' : '');
-            subtextHtml = `<span class="row-target-status ${cls}">${formattedSum} / ${step} ${item.unit}</span> <span style="font-size:0.7rem; color:#94a3b8;">(${dir === 'decrease' ? 'max' : 'min'})</span>`;
-          } else {
-            subtextHtml = `Cumul : <strong>${formattedSum}</strong> ${item.unit}`;
+      if (editingBehaviorId) {
+        catalogue = catalogue.map(c => {
+          if (c.id === editingBehaviorId) {
+            return { ...c, label, emoji, domain, mode, unit, phase, trackElapsed };
           }
-        }
+          return c;
+        });
+        editingBehaviorId = null;
+      } else {
+        const newId = 'beh_' + Date.now().toString(36);
+        catalogue.push({
+          id: newId,
+          label,
+          emoji,
+          domain,
+          mode,
+          unit,
+          defaultValue: mode === 'instant' ? 1 : null,
+          phase,
+          trackElapsed
+        });
+      }
 
-        let actionsHtml = '';
-        const defVal = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : 1;
-        if (isTimer) {
-          actionsHtml = isRunning
-            ? `<button class="btn-action-touch timer-cancel" data-id="${item.id}" title="Annuler">✕</button><button class="btn-action-touch timer-stop" data-id="${item.id}">⏹ Stop</button>`
-            : `<button class="btn-action-touch btn-row-retro" data-id="${item.id}" title="Rattrapage horodaté">🕒</button><button class="btn-action-touch timer-start" data-id="${item.id}" title="Démarrer">▶</button>`;
-        } else {
-          actionsHtml = `<button class="btn-action-touch btn-row-retro" data-id="${item.id}" title="Rattrapage horodaté">🕒</button><button class="btn-action-touch instant" data-id="${item.id}">+${defVal}</button>`;
-        }
+      saveCatalogue(catalogue);
+      document.getElementById('cat-cancel-btn').click();
+      refreshAllUI();
+    };
 
-        const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
+    /* =========================================================
+       GESTION DES DOMAINES
+       ========================================================= */
+    function renderDomainsUI() {
+      const container = document.getElementById('domains-list-container');
+      container.innerHTML = '';
+      const domains = getDomains();
+      const catalogue = getCatalogue();
 
+      domains.forEach(domain => {
+        const count = catalogue.filter(c => c.domain === domain).length;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.85rem;';
         row.innerHTML = `
-          <div class="row-left">
-            <div class="row-title-line">
-              <span class="row-label">${emojiPrefix}${item.label}</span>
-              <span class="row-domain-tag">${item.domain}</span>
-            </div>
-            <div class="row-subtext">${subtextHtml}</div>
-          </div>
-          <div class="row-actions">${actionsHtml}</div>
+          <span><strong>${domain}</strong> (${count} comportements)</span>
+          <button class="btn-icon" onclick="deleteDomain('${domain}')">🗑️</button>
         `;
-
-        const retroBtn = row.querySelector('.btn-row-retro');
-        if (retroBtn) {
-          retroBtn.addEventListener('click', () => openRowRetroModal(item.id));
-        }
-
-        if (isTimer) {
-          if (isRunning) {
-            row.querySelector('.timer-stop').addEventListener('click', () => stopTimer(item.id));
-            row.querySelector('.timer-cancel').addEventListener('click', () => cancelTimer(item.id));
-          } else {
-            row.querySelector('.timer-start').addEventListener('click', () => startTimer(item.id));
-          }
-        } else {
-          row.querySelector('.instant').addEventListener('click', () => {
-            logEvent({ domain: item.domain, action: item.id, value: defVal, unit: item.unit });
-          });
-        }
-        dashboardTiles.appendChild(row);
-      });
-
-      if (Object.keys(activeTimers).length > 0) {
-        if (!timerInterval) timerInterval = setInterval(updateActiveTimerDisplays, 1000);
-        updateActiveTimerDisplays();
-      } else if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-    }
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        updateActiveTimerDisplays();
-        renderDashboardView();
-      }
-    });
-    window.addEventListener('focus', () => {
-      updateActiveTimerDisplays();
-      renderDashboardView();
-    });
-
-    function createEvent(params = {}) {
-      return {
-        id: 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        timestamp: params.timestamp || new Date().toISOString(),
-        synced: false,
-        v: 1,
-        domain: String(params.domain || 'general').trim().toLowerCase(),
-        action: String(params.action || 'passage').trim().toLowerCase(),
-        value: typeof params.value === 'number' ? params.value : null,
-        unit: params.unit ? String(params.unit).trim().toLowerCase() : null,
-        tags: Array.isArray(params.tags) ? params.tags.map(t => String(t).trim()) : [],
-        notes: String(params.notes || '').trim()
-      };
-    }
-
-    function validateEvent(ev) {
-      return ev && typeof ev === 'object' && typeof ev.id === 'string' && ev.id && !isNaN(Date.parse(ev.timestamp)) && typeof ev.synced === 'boolean';
-    }
-
-    function getStoredEvents() { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : []; }
-    function saveEvents(ev) { localStorage.setItem(STORAGE_KEY, JSON.stringify(ev)); }
-
-    function formatDate(iso) {
-      return new Date(iso).toLocaleDateString('fr-FR', {
-        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+        container.appendChild(row);
       });
     }
 
-    function deleteEvent(eventId) {
-      if (!confirm('Supprimer ce passage de l\'historique ?')) return;
-      const events = getStoredEvents().filter(e => e.id !== eventId);
-      saveEvents(events);
-      refreshAllUI();
-    }
+    document.getElementById('add-domain-btn').onclick = () => {
+      const val = document.getElementById('new-domain-input').value.trim().toLowerCase();
+      if (!val) return;
+      let domains = getDomains();
+      if (!domains.includes(val)) {
+        domains.push(val);
+        saveDomains(domains);
+        document.getElementById('new-domain-input').value = '';
+        refreshAllUI();
+      }
+    };
 
-    function renderHistory() {
-      const events = getStoredEvents();
+    function deleteDomain(domain) {
       const catalogue = getCatalogue();
-      counterDisplay.textContent = `${events.length} enregistrement${events.length > 1 ? 's' : ''}`;
-      historyList.innerHTML = '';
-      const recent = [...events].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
-      if (recent.length === 0) {
-        historyList.innerHTML = '<li style="color: #888; font-size: 0.85rem; padding: 4px;">Aucun passage consigné.</li>';
+      const isUsed = catalogue.some(c => c.domain === domain);
+      if (isUsed) {
+        alert(`Impossible de supprimer le domaine "${domain}" : il est utilisé par des comportements existants.`);
         return;
       }
-      const mapItem = new Map(catalogue.map(c => [c.id, c]));
-      recent.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'event-item';
-        const badge = item.synced ? '<span class="badge-synced">Synchronisé</span>' : '<span class="badge-pending">En attente</span>';
-        const cObj = mapItem.get(item.action);
-        const emojiPrefix = cObj && cObj.emoji ? `${cObj.emoji} ` : '';
-        const label = cObj ? cObj.label : item.action.toUpperCase();
-        const det = item.value !== null && item.value !== undefined ? ` (+${item.value} ${item.unit || ''})`.trim() : '';
-        li.innerHTML = `
-          <div class="event-info">
-            <span class="event-action">${emojiPrefix}${label} <span style="font-weight:normal; color:#475569;">${det}</span></span>
-            <span class="event-meta">${formatDate(item.timestamp)}</span>
-          </div>
-          <div class="event-actions-cluster">
-            ${badge}
-            <button class="btn-event-delete" data-id="${item.id}" title="Supprimer ce passage">🗑️</button>
-          </div>
-        `;
-        li.querySelector('.btn-event-delete').addEventListener('click', () => deleteEvent(item.id));
-        historyList.appendChild(li);
-      });
-    }
-
-    function updateSyncIconUI() {
-      const hasPending = getStoredEvents().some(e => !e.synced);
-      if (hasPending) { syncButton.classList.add('pending'); syncButton.title = 'Événements en attente (cliquer)'; }
-      else { syncButton.classList.remove('pending'); syncButton.title = 'Tout est synchronisé'; }
-    }
-
-    function logEvent(params = {}) {
-      const entry = createEvent(params);
-      if (!validateEvent(entry)) return;
-      const ev = getStoredEvents();
-      ev.push(entry);
-      saveEvents(ev);
+      let domains = getDomains();
+      domains = domains.filter(d => d !== domain);
+      saveDomains(domains);
       refreshAllUI();
     }
 
-    function setRetroNow() {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      retroDatetime.value = now.toISOString().slice(0, 16);
-    }
+    /* =========================================================
+       SYNCHRONISATION DES BANDEAUX & DES SELECTEURS
+       ========================================================= */
+    function renderNavDomains() {
+      const container = document.getElementById('nav-domains-container');
+      container.innerHTML = '';
+      const domains = ['all', ...getDomains()];
 
-    function updateRetroDefaultVal() {
-      const catalogue = getCatalogue();
-      const item = catalogue.find(c => c.id === retroBehaviorSelect.value);
-      if (item) {
-        retroVal.value = (item.defaultValue !== null && item.defaultValue !== undefined) ? item.defaultValue : 1;
-      }
-    }
+      domains.forEach(d => {
+        const pill = document.createElement('div');
+        pill.className = `domain-pill ${currentFilterDomain === d ? 'active' : ''}`;
+        pill.textContent = d === 'all' ? 'Tous' : d;
+        pill.onclick = () => {
+          currentFilterDomain = d;
+          renderNavDomains();
+          renderLoopUI();
+        };
+        container.appendChild(pill);
+      });
 
-    function renderRetroBehaviorSelect() {
-      const catalogue = getCatalogue();
-      retroBehaviorSelect.innerHTML = '';
-      if (catalogue.length === 0) return;
-      catalogue.forEach(item => {
+      // Synchronisation du select pour les stats mensuelles
+      const statsDomainSelect = document.getElementById('stats-domain-filter');
+      statsDomainSelect.innerHTML = '<option value="all">Tous les domaines</option>';
+      getDomains().forEach(d => {
         const opt = document.createElement('option');
-        opt.value = item.id;
-        const emojiPrefix = item.emoji ? `${item.emoji} ` : '';
-        opt.textContent = `${emojiPrefix}${item.label} [${item.domain}] (${item.unit})`;
-        retroBehaviorSelect.appendChild(opt);
+        opt.value = d;
+        opt.textContent = d;
+        statsDomainSelect.appendChild(opt);
       });
-      updateRetroDefaultVal();
+
+      // Synchronisation du select pour la matrice 24h
+      const matrixDomainSelect = document.getElementById('matrix-domain-filter');
+      matrixDomainSelect.innerHTML = '<option value="all">Tous les domaines</option>';
+      getDomains().forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        matrixDomainSelect.appendChild(opt);
+      });
     }
 
-    retroBehaviorSelect.addEventListener('change', updateRetroDefaultVal);
+    function renderActiveTimersBanner() {
+      const banner = document.getElementById('active-timers-banner');
+      const list = document.getElementById('active-timers-list');
+      const timers = getActiveTimers();
+      const catalogue = getCatalogue();
+      const keys = Object.keys(timers);
 
-    retroForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const targetId = retroBehaviorSelect.value;
-      const item = getCatalogue().find(c => c.id === targetId);
-      if (!item) return;
-
-      const chosenDate = new Date(retroDatetime.value);
-      if (isNaN(chosenDate.getTime())) {
-        alert('Date ou heure invalide');
+      if (keys.length === 0) {
+        banner.style.display = 'none';
         return;
       }
 
-      const valNum = Number(retroVal.value);
-      logEvent({
-        domain: item.domain,
-        action: item.id,
-        value: isNaN(valNum) ? (item.defaultValue ?? 1) : valNum,
-        unit: item.unit,
-        timestamp: chosenDate.toISOString(),
-        notes: 'Saisie différée générale'
+      banner.style.display = 'block';
+      list.innerHTML = '';
+
+      keys.forEach(k => {
+        const item = catalogue.find(c => c.id === k);
+        const label = item ? item.label : k;
+        const elapsedSec = Math.floor((Date.now() - timers[k]) / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+
+        const row = document.createElement('div');
+        row.className = 'active-timer-row';
+        row.innerHTML = `
+          <span>${label} (${m} min ${String(s).padStart(2, '0')} s)</span>
+          <button class="btn-action btn-timer-stop" style="height:28px; padding:0 8px; font-size:0.75rem;" onclick="stopTimer('${k}')">Arrêter</button>
+        `;
+        list.appendChild(row);
       });
-
-      alert(`Passage consigné au ${chosenDate.toLocaleDateString('fr-FR')} à ${chosenDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}.`);
-      setRetroNow();
-    });
-
-    async function syncData() {
-      const ev = getStoredEvents();
-      const pending = ev.filter(e => !e.synced);
-      if (pending.length === 0) { updateSyncIconUI(); return; }
-
-      syncButton.disabled = true;
-      syncButton.classList.add('syncing');
-      syncButton.textContent = '⏳';
-
-      const payload = pending.map(e => ({
-        id: e.id,
-        timestamp: e.timestamp,
-        date_fr: formatDate(e.timestamp),
-        domain: e.domain || 'general',
-        action: e.action || 'passage',
-        value: e.value !== undefined ? e.value : null,
-        unit: e.unit || '',
-        notes: e.notes || ''
-      }));
-
-      try {
-        const res = await fetch(SYNC_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const resJson = await res.json();
-        if (resJson.status === 'success') {
-          const ids = new Set(pending.map(e => e.id));
-          saveEvents(ev.map(e => ids.has(e.id) ? { ...e, synced: true } : e));
-          renderHistory();
-        }
-      } catch (err) {
-        console.error('Erreur synchronisation :', err);
-      } finally {
-        syncButton.disabled = false;
-        syncButton.classList.remove('syncing');
-        syncButton.textContent = '☁️';
-        updateSyncIconUI();
-      }
     }
 
-    function exportBackupData() {
-      const backupPayload = {
+    /* =========================================================
+       SAUVEGARDE / RESTAURATION / PURGE COMPATIBLE BRAVE
+       ========================================================= */
+    document.getElementById('export-backup-btn').onclick = () => {
+      const data = {
         version: 1,
         exported_at: new Date().toISOString(),
+        behavior_domains: getDomains(),
         behavior_catalogue: getCatalogue(),
         behavior_logs: getStoredEvents(),
-        behavior_domains: getDomains(),
         active_timers: getActiveTimers()
       };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `suivi_sauvegarde_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
 
-      const jsonString = JSON.stringify(backupPayload, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
-      const downloadUrl = URL.createObjectURL(blob);
+    document.getElementById('import-backup-btn').onclick = () => {
+      document.getElementById('import-file-input').click();
+    };
 
-      const now = new Date();
-      const datePart = now.toISOString().slice(0, 10);
-      const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-      const fileName = `suivi_backup_${datePart}_${timePart}.json`;
-
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = fileName;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      URL.revokeObjectURL(downloadUrl);
-    }
-
-    function importBackupData(event) {
-      const file = event.target.files && event.target.files[0];
+    document.getElementById('import-file-input').onchange = (e) => {
+      const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = (event) => {
         try {
-          const data = JSON.parse(e.target.result);
-          if (!data || typeof data !== 'object') throw new Error('Format de fichier invalide');
-
-          const hasLogs = Array.isArray(data.behavior_logs);
-          const hasCat = Array.isArray(data.behavior_catalogue);
-
-          if (!hasLogs || !hasCat) {
-            alert('Erreur : le fichier JSON ne contient pas les données attendues.');
-            return;
-          }
-
-          if (!confirm('Attention : restaurer ce fichier écrasera les données locales actuelles. Continuer ?')) {
-            importBackupInput.value = '';
-            return;
-          }
-
-          if (data.behavior_catalogue) saveCatalogue(data.behavior_catalogue);
-          if (data.behavior_logs) saveEvents(data.behavior_logs);
-          if (data.behavior_domains) saveDomains(data.behavior_domains);
-          if (data.active_timers) saveActiveTimers(data.active_timers);
-
+          const json = JSON.parse(event.target.result);
+          if (json.behavior_catalogue) saveCatalogue(json.behavior_catalogue);
+          if (json.behavior_logs) saveStoredEvents(json.behavior_logs);
+          if (json.behavior_domains) saveDomains(json.behavior_domains);
+          if (json.active_timers) saveActiveTimers(json.active_timers);
+          alert('Sauvegarde restaurée avec succès !');
+          closeDrawer();
           refreshAllUI();
-          alert('Restauration effectuée avec succès !');
         } catch (err) {
-          alert('Impossible de lire le fichier JSON : ' + err.message);
-        } finally {
-          importBackupInput.value = '';
+          alert('Erreur lors de la lecture du fichier JSON : ' + err);
         }
       };
       reader.readAsText(file);
-    }
+    };
 
-    async function resetEntireApp() {
-      if (!confirm('Purger tout l’historique local, les chronos et vider le cache ?')) return;
-      if (timerInterval) clearInterval(timerInterval);
-      localStorage.clear();
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        for (const r of regs) await r.unregister();
+    document.getElementById('reset-app-btn').onclick = () => {
+      if (confirm('ATTENTION : réinitialiser l\'ensemble des données locales et vider le cache ?')) {
+        localStorage.clear();
+        if ('caches' in window) {
+          caches.keys().then(names => names.forEach(name => caches.delete(name)));
+        }
+        window.location.reload();
       }
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        for (const k of keys) await caches.delete(k);
-      }
-      window.location.replace(window.location.pathname);
-    }
+    };
 
+    /* =========================================================
+       CYCLE DE VIE & RAFRAÎCHISSEMENT GLOBAL
+       ========================================================= */
     function refreshAllUI() {
-      renderShortcutBars();
-      renderDashboardView();
-      renderCatalogueTree();
-      renderDomainSelect();
-      renderRetroBehaviorSelect();
-      renderCategoryBar();
-      renderActionRows();
-      renderHistory();
-      updateSyncIconUI();
+      renderNavDomains();
+      renderActiveTimersBanner();
+      updateStreakDisplay();
+      renderLoopUI();
+      renderMonthlyStats();
+      syncMatrixFilterSelectors();
+      render24hMatrix();
+      renderCatalogueUI();
+      renderDomainsUI();
     }
-
-    syncButton.addEventListener('click', syncData);
-    exportBackupBtn.addEventListener('click', exportBackupData);
-    importBackupBtn.addEventListener('click', () => importBackupInput.click());
-    importBackupInput.addEventListener('change', importBackupData);
-    resetAppBtn.addEventListener('click', resetEntireApp);
 
     window.addEventListener('load', () => {
+      // Enregistrement du Service Worker
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error('Erreur SW :', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration error:', err));
       }
-      setRetroNow();
-      refreshAllUI();
-      setInterval(renderDashboardView, 60000);
 
-      const p = new URLSearchParams(window.location.search);
-      if (p.get('action') === 'quick_log') {
-        const cat = getCatalogue();
-        if (cat.length > 0) {
-          const f = cat[0];
-          if (f.mode === 'timer') {
-            if (!getActiveTimers()[f.id]) startTimer(f.id);
-          } else {
-            logEvent({ domain: f.domain, action: f.id, value: f.defaultValue ?? 1, unit: f.unit });
-          }
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-      if (navigator.onLine) syncData();
+      // Initialisation du mois par défaut au mois courant (ex: 2026-10)
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      document.getElementById('stats-month-selector').value = currentMonthStr;
+
+      initNavigation();
+      refreshAllUI();
+
+      // Écouteurs pour actualiser les graphiques et tableaux
+      document.getElementById('stats-month-selector').addEventListener('change', () => {
+        renderMonthlyStats();
+        render24hMatrix();
+      });
+      document.getElementById('stats-domain-filter').addEventListener('change', renderMonthlyStats);
+      document.getElementById('matrix-domain-filter').addEventListener('change', () => {
+        syncMatrixFilterSelectors();
+        render24hMatrix();
+      });
+      document.getElementById('matrix-behavior-filter').addEventListener('change', render24hMatrix);
+
+      // Rafraîchissement régulier des chronomètres et streaks (1 seconde / 1 minute)
+      setInterval(() => {
+        renderActiveTimersBanner();
+        if (Object.keys(getActiveTimers()).length > 0) renderLoopUI();
+      }, 1000);
+
+      setInterval(updateStreakDisplay, 60000);
     });
   </script>
 </body>
