@@ -64,7 +64,7 @@
     }
     #drawer-overlay.open { display: block; }
     .drawer-header { padding: 18px 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.05rem; }
-    .drawer-menu { list-style: none; padding: 12px 8px; flex: 1; }
+    .drawer-menu { list-style: none; padding: 12px 8px; flex: 1; overflow-y: auto; }
     .drawer-item {
       padding: 12px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
       color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
@@ -134,7 +134,7 @@
       font-size: 0.78rem; padding: 6px 8px; background: var(--bg); border-radius: 6px;
     }
 
-    /* Vues Tableau de bord & Statistiques */
+    /* Cartes & Graphiques */
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px; margin-bottom: 16px;
@@ -153,7 +153,7 @@
     table.stats-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); }
     table.stats-table tr:last-child td { border-bottom: none; }
 
-    /* Matrice 24h (Heatmap Circadienne 07h-07h) */
+    /* Matrice 24h (Fenêtre 07h-07h) */
     .matrix-wrapper { margin-top: 8px; position: relative; }
     .matrix-axis {
       display: flex; justify-content: space-between; font-size: 0.68rem;
@@ -189,7 +189,7 @@
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* Boîte modale (Antidatage & Rattrapage) */
+    /* Modal Antidatage */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 110;
       display: none; align-items: center; justify-content: center; padding: 16px;
@@ -202,17 +202,37 @@
     .modal-title { font-weight: 800; font-size: 0.95rem; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 
-    /* Catalogue & Formulaire */
-    .domain-accordion { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
-    .domain-accordion summary { padding: 10px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: var(--bg); text-transform: capitalize; }
-    .cat-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 0.85rem; }
-
-    /* Encadré d'aide au calcul baseline */
+    /* Baseline Helper */
     .baseline-helper-card {
       background: var(--primary-light); border: 1px solid #bfdbfe;
       border-radius: 8px; padding: 10px 12px; display: flex;
       align-items: center; justify-content: space-between; gap: 8px;
     }
+
+    /* Onglet Défis */
+    .challenge-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .challenge-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .challenge-title { font-weight: 800; font-size: 0.95rem; }
+    .challenge-timer { font-family: monospace; font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+    .progress-track {
+      height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; position: relative;
+    }
+    .progress-fill {
+      height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease;
+    }
+    .challenge-items-detail { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; }
+    .challenge-item-row { display: flex; justify-content: space-between; color: var(--text-muted); }
+    .challenge-item-row.done { color: var(--success); font-weight: 700; }
+    .badge {
+      font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;
+    }
+    .badge-success { background: var(--success-light); color: var(--success); }
+    .badge-failed { background: var(--danger-light); color: var(--danger); }
+    .badge-active { background: var(--primary-light); color: var(--primary); }
 
     /* Utilitaires */
     .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); height: 38px; border-radius: 8px; font-weight: 600; padding: 0 12px; cursor: pointer; }
@@ -236,6 +256,7 @@
     <ul class="drawer-menu">
       <li class="drawer-item active" data-target="view-dashboard">📈 Tableau de bord</li>
       <li class="drawer-item" data-target="view-loop">⚡ Suivi d'activité (Loop)</li>
+      <li class="drawer-item" data-target="view-challenges">🎯 Défis & Épreuves</li>
       <li class="drawer-item" data-target="view-catalogue">⚙️ Catalogue des habitudes</li>
       <li class="drawer-item" data-target="view-domains">🏷️ Domaines & Thématiques</li>
       <li class="drawer-item" data-target="view-protocol">📖 Protocole & Relais</li>
@@ -252,13 +273,11 @@
   <main>
     <!-- 1. VUE TABLEAU DE BORD -->
     <section id="view-dashboard" class="view-panel active">
-      <!-- Bandeau chronos actifs avec affichage du record -->
       <div id="active-timers-banner" class="active-timers-card" style="display:none;">
         <div style="font-size:0.75rem; font-weight:700; color:#065f46; margin-bottom:6px;">CHRONOMÈTRES ACTIFS</div>
         <div id="active-timers-list"></div>
       </div>
 
-      <!-- Bandeau continuité / abstinence -->
       <div id="streak-card" class="streak-banner" style="display:none;">
         <div class="streak-info">
           <span style="font-size:1.1rem;">⏳</span>
@@ -267,11 +286,8 @@
         <div class="streak-counter" id="streak-counter">0 j 00 h 00 min</div>
       </div>
 
-      <!-- Statistiques cumulées mensuelles -->
       <div class="card">
-        <div class="card-title">
-          <span>Statistiques du mois</span>
-        </div>
+        <div class="card-title"><span>Statistiques du mois</span></div>
         <div class="stats-filters">
           <input type="month" id="stats-month-selector">
           <select id="stats-domain-filter"></select>
@@ -291,23 +307,15 @@
         </div>
       </div>
 
-      <!-- Matrice 24h circadienne (07h ➔ 07h J+1) -->
       <div class="card">
-        <div class="card-title">
-          <span>Matrice 24h mensuelle</span>
-        </div>
+        <div class="card-title"><span>Matrice 24h mensuelle</span></div>
         <div class="stats-filters">
           <select id="matrix-domain-filter"></select>
           <select id="matrix-behavior-filter"></select>
         </div>
-        
         <div class="matrix-wrapper">
           <div class="matrix-axis">
-            <span>07h</span>
-            <span>12h</span>
-            <span>18h</span>
-            <span>00h</span>
-            <span>07h</span>
+            <span>07h</span><span>12h</span><span>18h</span><span>00h</span><span>07h</span>
           </div>
           <div class="matrix-container" id="matrix-days-container">
             <div class="matrix-grid-guides">
@@ -324,22 +332,63 @@
     <!-- 2. VUE SUIVI LOOP -->
     <section id="view-loop" class="view-panel">
       <div class="loop-list" id="loop-container"></div>
-      
-      <!-- Accordéon historique des passages récents -->
       <details class="history-drawer">
         <summary>Historique récent (10 derniers faits)</summary>
         <div class="history-list" id="history-container"></div>
       </details>
     </section>
 
-    <!-- 3. VUE CATALOGUE -->
+    <!-- 3. VUE DÉFIS (NOUVEAU) -->
+    <section id="view-challenges" class="view-panel">
+      <div class="card">
+        <div class="card-title">Créer un défi</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <input type="text" id="ch-label" placeholder="Nom du défi (ex : Sprint Matinal)">
+          
+          <div style="display:flex; gap:8px;">
+            <select id="ch-time-mode" style="max-width:140px;">
+              <option value="duration">Durée limite</option>
+              <option value="date">Date butoir</option>
+            </select>
+            <div id="ch-duration-inputs" style="display:flex; gap:8px; flex:1;">
+              <input type="number" id="ch-duration-val" placeholder="Ex : 45" min="1">
+              <select id="ch-duration-unit" style="max-width:100px;">
+                <option value="min">min</option>
+                <option value="h">heure(s)</option>
+                <option value="jour">jour(s)</option>
+              </select>
+            </div>
+            <div id="ch-date-inputs" style="display:none; flex:1;">
+              <input type="datetime-local" id="ch-date-val">
+            </div>
+          </div>
+
+          <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-top:4px;">Comportements requis :</div>
+          <div id="ch-behaviors-selector" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; padding-right:4px;"></div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+            <button class="btn-primary" id="ch-start-btn">Lancer le défi</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:0.85rem; font-weight:800; color:var(--text-muted); margin-bottom:8px;">DÉFIS EN COURS</div>
+      <div id="active-challenges-container"></div>
+
+      <details class="history-drawer" style="margin-top:16px;">
+        <summary>Historique des défis terminés</summary>
+        <div id="history-challenges-container" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+      </details>
+    </section>
+
+    <!-- 4. VUE CATALOGUE -->
     <section id="view-catalogue" class="view-panel">
       <div class="card">
         <div class="card-title" id="cat-form-title">Ajouter une habitude</div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <input type="text" id="cat-label" placeholder="Libellé du comportement">
           <div style="display:flex; gap:8px;">
-            <input type="text" id="cat-emoji" placeholder="Émoji (ex: ☕)" style="max-width:80px;">
+            <input type="text" id="cat-emoji" placeholder="Émoji (ex : ☕)" style="max-width:80px;">
             <select id="cat-domain"></select>
           </div>
           <div style="display:flex; gap:8px;">
@@ -364,10 +413,8 @@
             </label>
           </div>
 
-          <!-- Encadré contextuel d'aide au calcul baseline -->
           <div id="cat-baseline-helper" class="baseline-helper-card" style="display:none;"></div>
 
-          <!-- Paliers cliniques TCC -->
           <div style="display:flex; gap:8px;">
             <input type="number" id="cat-baseline" placeholder="Baseline (départ)" step="any">
             <input type="number" id="cat-step" placeholder="Palier actif" step="any">
@@ -383,7 +430,7 @@
       <div id="catalogue-accordions-container"></div>
     </section>
 
-    <!-- 4. VUE DOMAINES -->
+    <!-- 5. VUE DOMAINES -->
     <section id="view-domains" class="view-panel">
       <div class="card">
         <div class="card-title">Ajouter une thématique</div>
@@ -398,20 +445,20 @@
       </div>
     </section>
 
-    <!-- 5. VUE PROTOCOLE -->
+    <!-- 6. VUE PROTOCOLE -->
     <section id="view-protocol" class="view-panel">
       <div class="card">
         <div class="card-title">Relais & Architecture souveraine</div>
         <div style="font-size:0.82rem; color:var(--text-muted); display:flex; flex-direction:column; gap:8px;">
-          <p>• <strong>Écriture aveugle (Write-only) :</strong> transmission par requêtes HTTPS POST (doPost) vers le Google Apps Script connecté à votre tableur à 8 colonnes[span_2](start_span)[span_2](end_span).</p>
-          <p>• <strong>Étanchéité totale :</strong> aucune donnée personnelle n'est stockée sur GitHub Pages[span_3](start_span)[span_3](end_span). Les données réelles sont confinées localement dans votre navigateur[span_4](start_span)[span_4](end_span).</p>
+          <p>• <strong>Écriture aveugle (Write-only) :</strong> transmission par requêtes HTTPS POST (doPost) vers le Google Apps Script connecté au tableur à 8 colonnes[span_1](start_span)[span_1](end_span).</p>
+          <p>• <strong>Étanchéité totale :</strong> aucune donnée personnelle n'est stockée sur GitHub Pages[span_2](start_span)[span_2](end_span). Les données réelles sont confinées localement dans votre navigateur[span_3](start_span)[span_3](end_span).</p>
           <p>• <strong>Phase 3 (Raspberry Pi) :</strong> rapatriement autonome programmé sans ouverture de ports entrants.</p>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Modale de rattrapage horodaté (Antidatage) -->
+  <!-- Modale Antidatage -->
   <div class="modal-overlay" id="retro-modal">
     <div class="modal-card">
       <div class="modal-title" id="retro-modal-title">Rattrapage d'un passage</div>
@@ -438,12 +485,11 @@
       { id: 'meditation', label: 'Méditation', emoji: '🧘', domain: 'sante', mode: 'timer', unit: 'min', defaultValue: 15, phase: 'baseline', target: { direction: 'increase', period: 'jour', baseline: null, currentStep: null, finalTarget: null } },
       { id: 'marche', label: 'Marche active', emoji: '🚶', domain: 'sport', mode: 'timer', unit: 'min', defaultValue: 30, phase: 'target', target: { direction: 'increase', period: 'jour', baseline: 0, currentStep: 30, finalTarget: 60 } }
     ];
-    const DEFAULT_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime(); // 1er octobre 2026
-
+    const DEFAULT_EPOCH = new Date(2026, 9, 1, 0, 0, 0).getTime();
     const PALETTE = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#84cc16', '#6366f1'];
 
     /* =========================================================
-       GESTIONNAIRE DE STOCKAGE LOCAL (localStorage)
+       GESTION DU STOCKAGE LOCAL
        ========================================================= */
     function getCatalogue() {
       const d = localStorage.getItem('behavior_catalogue');
@@ -469,6 +515,12 @@
     }
     function saveActiveTimers(t) { localStorage.setItem('active_timers', JSON.stringify(t)); }
 
+    function getChallenges() {
+      const d = localStorage.getItem('behavior_challenges');
+      return d ? JSON.parse(d) : [];
+    }
+    function saveChallenges(ch) { localStorage.setItem('behavior_challenges', JSON.stringify(ch)); }
+
     function getDomainColor(domain) {
       const domains = getDomains();
       const idx = domains.indexOf(domain);
@@ -476,7 +528,7 @@
     }
 
     /* =========================================================
-       ÉTAT DE SESSION & NAVIGATION
+       NAVIGATION
        ========================================================= */
     let currentFilterDomain = 'all';
     let editingBehaviorId = null;
@@ -509,7 +561,7 @@
     }
 
     /* =========================================================
-       MOTEUR DE JOURNALISATION (LOGS & TIMERS)
+       MOTEUR DE JOURNALISATION
        ========================================================= */
     function logEvent(actionId, value, unit, notes = '', customIsoDate = null) {
       const cat = getCatalogue();
@@ -586,7 +638,7 @@
     }
 
     /* =========================================================
-       RENDU DU SUIVI (LOOP VIEW)
+       SUIVI LOOP
        ========================================================= */
     function renderLoopUI() {
       const container = document.getElementById('loop-container');
@@ -718,7 +770,7 @@
     }
 
     /* =========================================================
-       BANDEAU DE CONTINUITÉ (STREAK DEPUIS L'EPOCH)
+       CONTINUITÉ & RECORD
        ========================================================= */
     function updateStreakDisplay() {
       const streakCard = document.getElementById('streak-card');
@@ -754,9 +806,6 @@
         : `${pad(hours)} h ${pad(mins)} min`;
     }
 
-    /* =========================================================
-       BANDEAU CHRONOMÈTRES ACTIFS & RECORD PERSONNEL (PR)
-       ========================================================= */
     function renderActiveTimersBanner() {
       const banner = document.getElementById('active-timers-banner');
       const list = document.getElementById('active-timers-list');
@@ -830,7 +879,7 @@
     }
 
     /* =========================================================
-       STATISTIQUES MENSUELLES (DIVISEUR SUR JOURS ÉCOULÉS)
+       STATISTIQUES & MATRICE 24H
        ========================================================= */
     function renderMonthlyStats() {
       const tbody = document.getElementById('stats-table-body');
@@ -887,9 +936,6 @@
       });
     }
 
-    /* =========================================================
-       MATRICE 24H CIRCADIENNE (FENÊTRE 07H00 ➔ 07H00 J+1)
-       ========================================================= */
     function render24hMatrix() {
       const container = document.getElementById('matrix-days-container');
       container.innerHTML = `
@@ -998,47 +1044,293 @@
     }
 
     /* =========================================================
-       MODALE D'ANTIDATAGE (RATTRAPAGE HORODATÉ)
+       MODULE DÉFIS & ÉPREUVES (NOUVEAU)
        ========================================================= */
-    function openRetroModal(actionId) {
-      retroBehaviorId = actionId;
-      const cat = getCatalogue();
-      const item = cat.find(c => c.id === actionId);
-      if (!item) return;
+    function renderChallengeBehaviorsSelector() {
+      const container = document.getElementById('ch-behaviors-selector');
+      container.innerHTML = '';
+      const catalogue = getCatalogue();
 
-      document.getElementById('retro-modal-title').textContent = `🕒 Rattrapage : ${item.emoji || ''} ${item.label}`;
-      document.getElementById('retro-value').value = item.defaultValue || 1;
-      document.getElementById('retro-notes').value = '';
+      catalogue.forEach(item => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg); padding:6px 10px; border-radius:6px; font-size:0.8rem;';
+        
+        row.innerHTML = `
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;">
+            <input type="checkbox" class="ch-beh-check" data-id="${item.id}" data-mode="${item.mode}" data-unit="${item.unit || ''}">
+            <span>${item.emoji || '•'} <strong>${item.label}</strong></span>
+          </label>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <input type="number" class="ch-beh-target" data-id="${item.id}" placeholder="Cible" style="width:70px; height:30px; font-size:0.8rem;" disabled step="any">
+            <span style="font-size:0.75rem; color:var(--text-muted); min-width:32px;">${item.unit || ''}</span>
+          </div>
+        `;
 
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('retro-datetime').value = now.toISOString().slice(0, 16);
+        const check = row.querySelector('.ch-beh-check');
+        const input = row.querySelector('.ch-beh-target');
+        check.onchange = () => {
+          input.disabled = !check.checked;
+          if (check.checked && !input.value) input.value = item.defaultValue || 1;
+        };
 
-      document.getElementById('retro-modal').classList.add('open');
+        container.appendChild(row);
+      });
     }
 
-    document.getElementById('retro-cancel-btn').onclick = () => {
-      document.getElementById('retro-modal').classList.remove('open');
-      retroBehaviorId = null;
+    document.getElementById('ch-time-mode').onchange = (e) => {
+      const mode = e.target.value;
+      document.getElementById('ch-duration-inputs').style.display = mode === 'duration' ? 'flex' : 'none';
+      document.getElementById('ch-date-inputs').style.display = mode === 'date' ? 'flex' : 'none';
     };
 
-    document.getElementById('retro-save-btn').onclick = () => {
-      if (!retroBehaviorId) return;
-      const cat = getCatalogue();
-      const item = cat.find(c => c.id === retroBehaviorId);
-      const dtValue = document.getElementById('retro-datetime').value;
-      const val = document.getElementById('retro-value').value;
-      const notes = document.getElementById('retro-notes').value;
+    document.getElementById('ch-start-btn').onclick = () => {
+      const label = document.getElementById('ch-label').value.trim();
+      if (!label) {
+        alert('Veuillez donner un nom à ce défi.');
+        return;
+      }
 
-      if (!dtValue || !val) return;
+      const timeMode = document.getElementById('ch-time-mode').value;
+      const startedAtMs = Date.now();
+      let deadlineMs = startedAtMs;
 
-      logEvent(retroBehaviorId, Number(val), item.unit, notes, new Date(dtValue).toISOString());
-      document.getElementById('retro-modal').classList.remove('open');
-      retroBehaviorId = null;
+      if (timeMode === 'duration') {
+        const val = Number(document.getElementById('ch-duration-val').value);
+        const unit = document.getElementById('ch-duration-unit').value;
+        if (!val || val <= 0) {
+          alert('Veuillez saisir une durée valide.');
+          return;
+        }
+        let mult = 60000;
+        if (unit === 'h') mult = 3600000;
+        if (unit === 'jour') mult = 86400000;
+        deadlineMs = startedAtMs + (val * mult);
+      } else {
+        const dateVal = document.getElementById('ch-date-val').value;
+        if (!dateVal) {
+          alert('Veuillez sélectionner une date butoir.');
+          return;
+        }
+        deadlineMs = new Date(dateVal).getTime();
+        if (deadlineMs <= startedAtMs) {
+          alert('La date butoir doit être fixée dans le futur.');
+          return;
+        }
+      }
+
+      const selectedItems = [];
+      document.querySelectorAll('.ch-beh-check:checked').forEach(chk => {
+        const id = chk.getAttribute('data-id');
+        const mode = chk.getAttribute('data-mode');
+        const unit = chk.getAttribute('data-unit');
+        const targetInput = document.querySelector(`.ch-beh-target[data-id="${id}"]`);
+        const targetVal = Number(targetInput.value);
+
+        if (targetVal > 0) {
+          selectedItems.push({
+            behavior_id: id,
+            mode: mode,
+            unit: unit,
+            target: targetVal
+          });
+        }
+      });
+
+      if (selectedItems.length === 0) {
+        alert('Veuillez cocher au moins un comportement et lui définir une cible.');
+        return;
+      }
+
+      const newChallenge = {
+        id: 'ch_' + Date.now().toString(36),
+        label: label,
+        started_at: new Date(startedAtMs).toISOString(),
+        deadline: new Date(deadlineMs).toISOString(),
+        items: selectedItems,
+        status: 'active'
+      };
+
+      const challenges = getChallenges();
+      challenges.unshift(newChallenge);
+      saveChallenges(challenges);
+
+      document.getElementById('ch-label').value = '';
+      document.getElementById('ch-duration-val').value = '';
+      document.querySelectorAll('.ch-beh-check').forEach(c => { c.checked = false; });
+      document.querySelectorAll('.ch-beh-target').forEach(i => { i.value = ''; i.disabled = true; });
+
+      refreshAllUI();
     };
+
+    function evaluateChallengeProgress(ch) {
+      const now = Date.now();
+      const startMs = new Date(ch.started_at).getTime();
+      const deadlineMs = new Date(ch.deadline).getTime();
+      const events = getStoredEvents();
+      const timers = getActiveTimers();
+      const catalogue = getCatalogue();
+
+      let totalFractions = 0;
+      const details = [];
+
+      ch.items.forEach(item => {
+        const beh = catalogue.find(c => c.id === item.behavior_id);
+        const behLabel = beh ? beh.label : item.behavior_id;
+        const behEmoji = beh ? (beh.emoji || '') : '';
+
+        // Logs validés strictement après le début du défi
+        const matchingLogs = events.filter(e => {
+          if (e.action !== item.behavior_id) return false;
+          const t = new Date(e.timestamp).getTime();
+          return t >= startMs && t <= deadlineMs;
+        });
+
+        let completedVal = matchingLogs.reduce((acc, cur) => acc + Number(cur.value || 0), 0);
+
+        // Contribution live du chrono si en cours
+        if (timers[item.behavior_id]) {
+          const tStart = timers[item.behavior_id];
+          const segStart = Math.max(tStart, startMs);
+          const effectiveEnd = Math.min(now, deadlineMs);
+          if (effectiveEnd > segStart) {
+            const diffMs = effectiveEnd - segStart;
+            let added = diffMs / 60000;
+            if (item.unit === 'h') added = diffMs / 3600000;
+            if (item.unit === 'sec') added = diffMs / 1000;
+            completedVal += added;
+          }
+        }
+
+        const target = Number(item.target) || 1;
+        const frac = Math.min(1, Math.max(0, completedVal / target));
+        totalFractions += frac;
+
+        details.push({
+          label: behLabel,
+          emoji: behEmoji,
+          completed: Math.round(completedVal * 10) / 10,
+          target: target,
+          unit: item.unit,
+          frac: frac,
+          isDone: frac >= 1
+        });
+      });
+
+      const N = ch.items.length;
+      const globalPercent = Math.min(100, Math.round((totalFractions / N) * 100));
+
+      return {
+        globalPercent,
+        details,
+        isCompleted: globalPercent >= 100,
+        isExpired: now > deadlineMs,
+        remainingMs: Math.max(0, deadlineMs - now)
+      };
+    }
+
+    function renderChallengesUI() {
+      const activeContainer = document.getElementById('active-challenges-container');
+      const historyContainer = document.getElementById('history-challenges-container');
+      activeContainer.innerHTML = '';
+      historyContainer.innerHTML = '';
+
+      let challenges = getChallenges();
+      let hasChanges = false;
+
+      challenges.forEach(ch => {
+        const evalRes = evaluateChallengeProgress(ch);
+
+        // Mise à jour de statut si nécessaire
+        if (ch.status === 'active') {
+          if (evalRes.isCompleted) {
+            ch.status = 'success';
+            hasChanges = true;
+          } else if (evalRes.isExpired) {
+            ch.status = 'failed';
+            hasChanges = true;
+          }
+        }
+
+        if (ch.status === 'active') {
+          const card = document.createElement('div');
+          card.className = 'challenge-card';
+
+          const remSec = Math.floor(evalRes.remainingMs / 1000);
+          const remH = Math.floor(remSec / 3600);
+          const remM = Math.floor((remSec % 3600) / 60);
+          const remS = remSec % 60;
+          const pad = n => String(n).padStart(2, '0');
+          const timeStr = `${pad(remH)}:${pad(remM)}:${pad(remS)}`;
+
+          let itemsHtml = evalRes.details.map(d => `
+            <div class="challenge-item-row ${d.isDone ? 'done' : ''}">
+              <span>${d.emoji} ${d.label}</span>
+              <span>${d.completed} / ${d.target} ${d.unit} (${Math.round(d.frac * 100)} %)</span>
+            </div>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="challenge-header">
+              <div>
+                <div class="challenge-title">${ch.label}</div>
+                <span class="badge badge-active">En cours</span>
+              </div>
+              <div class="challenge-timer">⏳ ${timeStr}</div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: ${evalRes.globalPercent}%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700;">
+              <span>Taux de complétion</span>
+              <span>${evalRes.globalPercent} %</span>
+            </div>
+            <div class="challenge-items-detail">${itemsHtml}</div>
+            <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+              <button class="btn-secondary" style="height:28px; font-size:0.75rem; padding:0 8px; color:var(--danger);" onclick="abandonChallenge('${ch.id}')">Abandonner</button>
+            </div>
+          `;
+          activeContainer.appendChild(card);
+        } else {
+          const card = document.createElement('div');
+          card.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:var(--bg); padding:8px 12px; border-radius:8px; font-size:0.8rem;';
+          const isSuccess = ch.status === 'success';
+          const badgeClass = isSuccess ? 'badge-success' : 'badge-failed';
+          const badgeText = isSuccess ? 'Succès 🎉' : 'Échec ⏳';
+
+          card.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <span><strong>${ch.label}</strong> • <span class="badge ${badgeClass}">${badgeText}</span></span>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Terminé le ${new Date(ch.deadline).toLocaleDateString('fr-FR')} (${evalRes.globalPercent} % atteint)</span>
+            </div>
+            <button class="btn-icon" onclick="deleteChallenge('${ch.id}')">🗑️</button>
+          `;
+          historyContainer.appendChild(card);
+        }
+      });
+
+      if (hasChanges) saveChallenges(challenges);
+      if (activeContainer.children.length === 0) {
+        activeContainer.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); padding:10px 0;">Aucun défi actif pour le moment.</div>';
+      }
+    }
+
+    function abandonChallenge(id) {
+      if (!confirm('Abandonner ce défi en cours ?')) return;
+      let challenges = getChallenges();
+      challenges = challenges.map(ch => ch.id === id ? { ...ch, status: 'failed' } : ch);
+      saveChallenges(challenges);
+      refreshAllUI();
+    }
+
+    function deleteChallenge(id) {
+      let challenges = getChallenges();
+      challenges = challenges.filter(ch => ch.id !== id);
+      saveChallenges(challenges);
+      refreshAllUI();
+    }
 
     /* =========================================================
-       GESTION DU CATALOGUE (ACCORDÉONS & BASELINE HELPER)
+       CATALOGUE & BASELINE HELPER
        ========================================================= */
     function updateBaselineHelper(behaviorId) {
       const helperBox = document.getElementById('cat-baseline-helper');
@@ -1098,7 +1390,7 @@
 
       domains.forEach(domain => {
         const details = document.createElement('details');
-        details.className = 'domain-accordion';
+        details.className = 'history-drawer';
 
         const items = catalogue.filter(c => c.domain === domain);
         const summary = document.createElement('summary');
@@ -1107,7 +1399,7 @@
 
         items.forEach(item => {
           const div = document.createElement('div');
-          div.className = 'cat-item';
+          div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--border); font-size:0.85rem;';
           div.innerHTML = `
             <span><strong>${item.emoji || '•'} ${item.label}</strong> (${item.mode}, ${item.phase})</span>
             <div style="display:flex; gap:6px;">
@@ -1206,16 +1498,9 @@
         catalogue = catalogue.map(c => {
           if (c.id === editingBehaviorId) {
             return {
-              ...c,
-              label,
-              emoji,
-              domain,
-              mode,
-              unit,
+              ...c, label, emoji, domain, mode, unit,
               defaultValue: defVal !== '' ? Number(defVal) : (mode === 'instant' ? 1 : null),
-              phase,
-              trackElapsed,
-              target: targetObj
+              phase, trackElapsed, target: targetObj
             };
           }
           return c;
@@ -1224,16 +1509,9 @@
       } else {
         const newId = 'beh_' + Date.now().toString(36);
         catalogue.push({
-          id: newId,
-          label,
-          emoji,
-          domain,
-          mode,
-          unit,
+          id: newId, label, emoji, domain, mode, unit,
           defaultValue: defVal !== '' ? Number(defVal) : (mode === 'instant' ? 1 : null),
-          phase,
-          trackElapsed,
-          target: targetObj
+          phase, trackElapsed, target: targetObj
         });
       }
 
@@ -1243,7 +1521,7 @@
     };
 
     /* =========================================================
-       GESTION DES DOMAINES
+       DOMAINES
        ========================================================= */
     function renderDomainsUI() {
       const container = document.getElementById('domains-list-container');
@@ -1288,9 +1566,6 @@
       refreshAllUI();
     }
 
-    /* =========================================================
-       SYNCHRONISATION DES BANDEAUX & DES SELECTEURS
-       ========================================================= */
     function renderNavDomains() {
       const container = document.getElementById('nav-domains-container');
       container.innerHTML = '';
@@ -1328,7 +1603,7 @@
     }
 
     /* =========================================================
-       SAUVEGARDE / RESTAURATION / PURGE COMPATIBLE BRAVE
+       SAUVEGARDE & RESTAURATION (AVEC DÉFIS)
        ========================================================= */
     document.getElementById('export-backup-btn').onclick = () => {
       const data = {
@@ -1337,7 +1612,8 @@
         behavior_domains: getDomains(),
         behavior_catalogue: getCatalogue(),
         behavior_logs: getStoredEvents(),
-        active_timers: getActiveTimers()
+        active_timers: getActiveTimers(),
+        behavior_challenges: getChallenges()
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -1363,6 +1639,7 @@
           if (json.behavior_logs) saveStoredEvents(json.behavior_logs);
           if (json.behavior_domains) saveDomains(json.behavior_domains);
           if (json.active_timers) saveActiveTimers(json.active_timers);
+          if (json.behavior_challenges) saveChallenges(json.behavior_challenges);
           alert('Sauvegarde restaurée avec succès !');
           closeDrawer();
           refreshAllUI();
@@ -1384,7 +1661,7 @@
     };
 
     /* =========================================================
-       CYCLE DE VIE & RAFRAÎCHISSEMENT GLOBAL
+       CYCLE DE VIE & ACTUALISATION
        ========================================================= */
     function refreshAllUI() {
       renderNavDomains();
@@ -1396,6 +1673,8 @@
       render24hMatrix();
       renderCatalogueUI();
       renderDomainsUI();
+      renderChallengeBehaviorsSelector();
+      renderChallengesUI();
     }
 
     window.addEventListener('load', () => {
@@ -1421,13 +1700,15 @@
       });
       document.getElementById('matrix-behavior-filter').addEventListener('change', render24hMatrix);
 
+      // Boucle temps réel (Chronomètres et Défis en direct)
       setInterval(() => {
         renderActiveTimersBanner();
         if (Object.keys(getActiveTimers()).length > 0) renderLoopUI();
+        if (getChallenges().some(ch => ch.status === 'active')) renderChallengesUI();
       }, 1000);
 
       setInterval(updateStreakDisplay, 60000);
     });
   </script>
 </body>
-  </html>
+</html>
