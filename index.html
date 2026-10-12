@@ -129,6 +129,7 @@
       border: none; background: var(--primary); color: #ffffff;
       font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
     }
+    .btn-action:active { filter: brightness(0.9); }
     .btn-action.active-timer { background: var(--danger); }
     .btn-micro {
       height: 34px; width: 34px; border-radius: 6px; border: 1px solid var(--border);
@@ -161,9 +162,19 @@
     }
     .btn-micro-action {
       background: #eff6ff; border: 1px solid #bfdbfe; color: var(--primary);
-      padding: 3px 8px; font-size: 0.72rem; font-weight: 700; border-radius: 4px; cursor: pointer;
+      padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 4px; cursor: pointer;
     }
     .btn-micro-action.btn-stop { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #0f172a; color: #ffffff; padding: 10px 18px; border-radius: 24px;
+      font-size: 0.82rem; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      opacity: 0; transition: transform 0.25s ease, opacity 0.25s ease; pointer-events: none;
+      z-index: 200; display: flex; align-items: center; gap: 8px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
     /* Modales */
     .modal-overlay {
@@ -178,6 +189,9 @@
   </style>
 </head>
 <body>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Passage consigné ! ✓</div>
 
   <!-- Tiroir Burger -->
   <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)"></div>
@@ -257,6 +271,29 @@
 
     <!-- VUE 3 : DÉFIS & ÉPREUVES -->
     <section class="view" id="view-challenges">
+      <!-- Création rapide d'habitude de défi -->
+      <details style="background: #ffffff; border: 1px dashed var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">
+        <summary style="font-size: 0.82rem; font-weight: 700; cursor: pointer; color: var(--primary);">➕ Créer une habitude dédiée aux défis</summary>
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="form-row">
+            <input type="text" id="quick-ch-label" class="form-control" placeholder="Nom (ex. Posture)" style="flex: 3;">
+            <input type="text" id="quick-ch-emoji" class="form-control" placeholder="🎯" style="flex: 1; text-align: center;">
+          </div>
+          <div class="form-row">
+            <select id="quick-ch-domain" class="form-control" style="flex: 1;"></select>
+            <select id="quick-ch-mode" class="form-control" style="flex: 1;">
+              <option value="timer">Chronomètre</option>
+              <option value="instant">Instantané (+1)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input type="text" id="quick-ch-unit" class="form-control" placeholder="Unité (min, rep...)" style="flex: 1;">
+            <input type="number" id="quick-ch-defval" class="form-control" placeholder="Valeur par défaut (15)" style="flex: 1;">
+          </div>
+          <button class="btn-action" style="height: 38px; margin-top: 4px;" onclick="createQuickChallengeBehavior()">Enregistrer pour les défis</button>
+        </div>
+      </details>
+
       <div class="card">
         <div class="card-title">Armer un nouveau défi</div>
         <div class="form-group">
@@ -519,7 +556,24 @@
     }
 
     /* ==========================================================================
-       3. NAVIGATION & INTERFACE GLOBALE
+       3. RETOUR UTILISATEUR (TOAST & HAPTIQUE)
+       ========================================================================== */
+    function showToast(msg = 'Passage consigné ! ✓') {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.add('show');
+      if (navigator.vibrate) {
+        try { navigator.vibrate(30); } catch(e) {}
+      }
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1600);
+    }
+
+    /* ==========================================================================
+       4. NAVIGATION & INTERFACE GLOBALE
        ========================================================================== */
     function toggleDrawer(open) {
       document.getElementById('drawer').classList.toggle('active', open);
@@ -555,7 +609,7 @@
     }
 
     /* ==========================================================================
-       4. VUE SUIVI D'ACTIVITÉ (LOOP 58px) & GESTION DES CHRONOS
+       5. VUE SUIVI D'ACTIVITÉ (LOOP 58px) & GESTION DES CHRONOS
        ========================================================================== */
     function renderLoop() {
       const catalogue = getCatalogue();
@@ -563,7 +617,7 @@
       const logs = getStoredEvents();
       const container = document.getElementById('loop-container');
 
-      // Filtrage : exclure strictement les comportements réservés aux défis
+      // Filtrage : masquer les comportements réservés aux défis
       const visibleCatalogue = catalogue.filter(b => !b.challengeOnly);
       const filtered = visibleCatalogue.filter(b => currentDomainFilter === 'all' || b.domain === currentDomainFilter);
 
@@ -581,7 +635,6 @@
         const isTimer = beh.mode === 'timer';
         const isRunning = isTimer && !!activeTimers[beh.id];
 
-        // Calcul du cumul journalier
         const dayLogs = logs.filter(l => l.action === beh.id && l.timestamp.startsWith(todayStr));
         const dayTotal = dayLogs.reduce((acc, l) => acc + (Number(l.value) || 0), 0);
 
@@ -618,6 +671,7 @@
       const beh = getCatalogue().find(b => b.id === behId);
       if (!beh) return;
       addLog(beh.domain, beh.id, beh.defaultValue || 1, beh.unit || 'occurrence');
+      showToast(`${beh.emoji || '⚡'} ${beh.label} consigné !`);
       refreshAllUI();
     }
 
@@ -627,7 +681,6 @@
       if (!beh) return;
 
       if (activeTimers[behId]) {
-        // Arrêt du chronomètre
         const startTime = activeTimers[behId];
         delete activeTimers[behId];
         saveActiveTimers(activeTimers);
@@ -646,10 +699,11 @@
 
         const note = `Session : durée brute ${durationSec} s`;
         addLog(beh.domain, beh.id, recordedVal, recordedUnit, note);
+        showToast(`⏱ ${beh.label} : ${recordedVal} ${recordedUnit} validé !`);
       } else {
-        // Démarrage du chronomètre
         activeTimers[behId] = Date.now();
         saveActiveTimers(activeTimers);
+        showToast(`⏱ ${beh.label} lancé !`);
       }
       refreshAllUI();
     }
@@ -703,12 +757,52 @@
       let logs = getStoredEvents();
       logs = logs.filter(l => l.id !== logId);
       saveStoredEvents(logs);
+      showToast('Passage retiré');
       refreshAllUI();
     }
 
     /* ==========================================================================
-       5. MODULE DÉFIS & ÉPREUVES (ACTIONS DIRECTES & SAUVEGARDE DISTANTE)
+       6. MODULE DÉFIS & ÉPREUVES (ACTIONS DIRECTES, PROLONGATION & AJOUT RAPIDE)
        ========================================================================== */
+    function createQuickChallengeBehavior() {
+      const label = document.getElementById('quick-ch-label').value.trim();
+      const emoji = document.getElementById('quick-ch-emoji').value.trim() || '🎯';
+      const domain = document.getElementById('quick-ch-domain').value;
+      const mode = document.getElementById('quick-ch-mode').value;
+      const unit = document.getElementById('quick-ch-unit').value.trim() || (mode === 'timer' ? 'min' : 'rep');
+      const defVal = Number(document.getElementById('quick-ch-defval').value) || (mode === 'timer' ? 15 : 1);
+
+      if (!label) {
+        alert('Veuillez renseigner un libellé.');
+        return;
+      }
+
+      const newBeh = {
+        id: 'beh_ch_' + Date.now().toString(36),
+        label: label,
+        emoji: emoji,
+        domain: domain,
+        mode: mode,
+        unit: unit,
+        defaultValue: defVal,
+        phase: 'target',
+        trackElapsed: false,
+        challengeOnly: true,
+        target: { direction: 'increase', period: 'jour', baseline: null, currentStep: defVal, finalTarget: defVal }
+      };
+
+      const catalogue = getCatalogue();
+      catalogue.push(newBeh);
+      saveCatalogue(catalogue);
+
+      document.getElementById('quick-ch-label').value = '';
+      document.getElementById('quick-ch-unit').value = '';
+      document.getElementById('quick-ch-defval').value = '';
+
+      refreshAllUI();
+      showToast('Habitude de défi créée ! 🎯');
+    }
+
     function renderChallengeHabitSelectors() {
       const catalogue = getCatalogue();
       const container = document.getElementById('ch-habits-selection');
@@ -781,6 +875,7 @@
 
       document.getElementById('ch-name').value = '';
       document.getElementById('ch-duration-val').value = '';
+      showToast('Défi armé et lancé ! 🚀');
       renderChallenges();
     }
 
@@ -803,20 +898,25 @@
         const isTimeExpired = now >= deadMs;
 
         if (c.status === 'active') {
-          // Calcul dynamique de l'avancement
           let totalProgress = 0;
           let itemsHtml = '';
+          let hasEligibleActiveTimer = false;
 
           c.items.forEach(it => {
             const beh = catalogue.find(b => b.id === it.behavior_id);
             const behLogs = logs.filter(l => l.action === it.behavior_id && new Date(l.timestamp).getTime() >= startMs);
             let doneVal = behLogs.reduce((acc, l) => acc + (Number(l.value) || 0), 0);
 
-            // Prise en compte du chronomètre en direct
+            // Vérification du chronomètre en cours
             const isTimerRunning = it.mode === 'timer' && !!activeTimers[it.behavior_id];
             if (isTimerRunning) {
-              const timerStart = Math.max(activeTimers[it.behavior_id], startMs);
-              const elapsedSec = Math.max(0, (now - timerStart) / 1000);
+              const timerStart = activeTimers[it.behavior_id];
+              // Éligibilité à la prolongation : chrono démarré avant l'échéance du défi
+              if (timerStart < deadMs) {
+                hasEligibleActiveTimer = true;
+              }
+              const effStart = Math.max(timerStart, startMs);
+              const elapsedSec = Math.max(0, (now - effStart) / 1000);
               if (it.unit === 'h') doneVal += elapsedSec / 3600;
               else doneVal += elapsedSec / 60;
             }
@@ -824,7 +924,6 @@
             const itemRatio = Math.min(1, doneVal / it.target);
             totalProgress += (itemRatio * (100 / c.items.length));
 
-            // Micro-action directe incrustée
             let actionBtnHtml = '';
             if (it.mode === 'timer') {
               actionBtnHtml = `
@@ -852,36 +951,46 @@
 
           const finalScore = Math.min(100, Math.round(totalProgress));
 
-          // Évaluation de succès ou d'échec
+          // Évaluation : succès prioritaire
           if (finalScore >= 100) {
             c.status = 'success';
             c.completed_at = new Date().toISOString();
             c.final_score = 100;
             c.time_spent_sec = Math.round((now - startMs) / 1000);
             saveChallenges(challenges);
-            logChallengeAccomplishment(c); // Sauvegarde automatique vers Google Sheets
+            logChallengeAccomplishment(c);
+            showToast('🏆 Félicitations ! Défi remporté à 100% !');
             refreshAllUI();
             return;
           } else if (isTimeExpired) {
-            c.status = 'failed';
-            c.completed_at = new Date().toISOString();
-            c.final_score = finalScore;
-            c.time_spent_sec = Math.round((deadMs - startMs) / 1000);
-            saveChallenges(challenges);
-            refreshAllUI();
-            return;
+            // Règle de tolérance : pas d'échec tant qu'un chronomètre lancé avant l'échéance tourne encore
+            if (!hasEligibleActiveTimer) {
+              c.status = 'failed';
+              c.completed_at = new Date().toISOString();
+              c.final_score = finalScore;
+              c.time_spent_sec = Math.round((deadMs - startMs) / 1000);
+              saveChallenges(challenges);
+              refreshAllUI();
+              return;
+            }
           }
 
-          const remSec = Math.max(0, Math.round((deadMs - now) / 1000));
-          const remHours = Math.floor(remSec / 3600);
-          const remMin = Math.floor((remSec % 3600) / 60);
+          let timeLabel = '';
+          if (isTimeExpired && hasEligibleActiveTimer) {
+            timeLabel = `<span style="color:var(--primary); font-weight:700;">⏱ Prolongation active</span>`;
+          } else {
+            const remSec = Math.max(0, Math.round((deadMs - now) / 1000));
+            const remHours = Math.floor(remSec / 3600);
+            const remMin = Math.floor((remSec % 3600) / 60);
+            timeLabel = `⏳ Reste : ${remHours} h ${remMin} min`;
+          }
 
           activeHtml += `
             <div class="challenge-card">
               <div class="challenge-header">
                 <div>
                   <div class="challenge-title">🎯 ${c.label}</div>
-                  <div class="challenge-time">⏳ Reste : ${remHours} h ${remMin} min</div>
+                  <div class="challenge-time">${timeLabel}</div>
                 </div>
                 <button style="border:none; background:none; color:var(--danger); font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="abandonChallenge('${c.id}')">Abandonner</button>
               </div>
@@ -891,7 +1000,6 @@
             </div>
           `;
         } else {
-          // Défi terminé / archivé
           const isSuccess = c.status === 'success';
           const durMin = Math.round((c.time_spent_sec || 0) / 60);
           historyHtml += `
@@ -914,6 +1022,7 @@
       const beh = getCatalogue().find(b => b.id === behId);
       if (!beh) return;
       addLog(beh.domain, beh.id, beh.defaultValue || 1, beh.unit || 'occurrence', 'Action directe défi');
+      showToast(`${beh.emoji || '⚡'} +${beh.defaultValue || 1} validé sur le défi !`);
       refreshAllUI();
     }
 
@@ -929,11 +1038,11 @@
         ch.status = 'failed';
         ch.completed_at = new Date().toISOString();
         saveChallenges(challenges);
+        showToast('Défi abandonné');
         refreshAllUI();
       }
     }
 
-    // Émission du fait d'accomplissement pour réplication automatique Google Sheets
     function logChallengeAccomplishment(challenge) {
       const durMin = Math.round((challenge.time_spent_sec || 0) / 60);
       const note = `Défi réussi : ${challenge.label} en ${durMin} min`;
@@ -941,7 +1050,7 @@
     }
 
     /* ==========================================================================
-       6. VUE COCKPIT & MATRICE CIRCADIENNE
+       7. VUE COCKPIT & MATRICE CIRCADIENNE
        ========================================================================== */
     function renderStreakBanner() {
       const catalogue = getCatalogue();
@@ -1037,7 +1146,7 @@
     }
 
     /* ==========================================================================
-       7. VUE CATALOGUE DES HABITUDES & CALCUL BASELINE
+       8. VUE CATALOGUE DES HABITUDES & CALCUL BASELINE
        ========================================================================== */
     function renderCatalogueTree() {
       const catalogue = getCatalogue();
@@ -1070,8 +1179,11 @@
 
     function populateDomainSelects() {
       const domains = getDomains();
-      const sel = document.getElementById('cat-domain');
-      sel.innerHTML = domains.map(d => `<option value="${d}">${d}</option>`).join('');
+      const catSel = document.getElementById('cat-domain');
+      const quickSel = document.getElementById('quick-ch-domain');
+      const optHtml = domains.map(d => `<option value="${d}">${d}</option>`).join('');
+      if (catSel) catSel.innerHTML = optHtml;
+      if (quickSel) quickSel.innerHTML = optHtml;
     }
 
     function toggleCatModeFields() {
@@ -1101,7 +1213,6 @@
 
       toggleCatModeFields();
 
-      // Assistant baseline
       const logs = getStoredEvents().filter(l => l.action === beh.id);
       const assistant = document.getElementById('cat-baseline-assistant');
       if (logs.length > 0) {
@@ -1150,7 +1261,6 @@
       let catalogue = getCatalogue();
       const existingIdx = catalogue.findIndex(b => b.id === id);
 
-      // Si trackElapsed est activé, désactiver les autres
       if (trackElapsed) {
         catalogue.forEach(b => { if (b.id !== id) b.trackElapsed = false; });
       }
@@ -1180,6 +1290,7 @@
 
       saveCatalogue(catalogue);
       resetCatalogueForm();
+      showToast('Habitude enregistrée !');
       refreshAllUI();
     }
 
@@ -1187,11 +1298,12 @@
       if (!confirm('Supprimer cette habitude du catalogue ?')) return;
       let catalogue = getCatalogue().filter(b => b.id !== behId);
       saveCatalogue(catalogue);
+      showToast('Habitude supprimée');
       refreshAllUI();
     }
 
     /* ==========================================================================
-       8. GESTION DES DOMAINES
+       9. GESTION DES DOMAINES
        ========================================================================== */
     function renderDomainsView() {
       const domains = getDomains();
@@ -1219,6 +1331,7 @@
         domains.push(val);
         saveDomains(domains);
         document.getElementById('new-domain-input').value = '';
+        showToast(`Domaine ${val} ajouté`);
         refreshAllUI();
       }
     }
@@ -1226,11 +1339,12 @@
     function deleteDomain(domain) {
       let domains = getDomains().filter(d => d !== domain);
       saveDomains(domains);
+      showToast(`Domaine ${domain} supprimé`);
       refreshAllUI();
     }
 
     /* ==========================================================================
-       9. MODALE DE RATTRAPAGE HORODATÉ
+       10. MODALE DE RATTRAPAGE HORODATÉ
        ========================================================================== */
     function openCatchupModal(behId) {
       const beh = getCatalogue().find(b => b.id === behId);
@@ -1279,11 +1393,12 @@
       saveStoredEvents(logs);
 
       toggleCatchupModal(false);
+      showToast('Rattrapage consigné ! ✓');
       refreshAllUI();
     }
 
     /* ==========================================================================
-       10. SYNCHRONISATION AVEUGLE VERS GOOGLE SHEETS
+       11. SYNCHRONISATION AVEUGLE VERS GOOGLE SHEETS
        ========================================================================== */
     async function triggerManualSync() {
       const syncBtn = document.getElementById('sync-cloud-btn');
@@ -1293,7 +1408,7 @@
       const unsynced = logs.filter(l => !l.synced);
 
       if (unsynced.length === 0) {
-        alert('Toutes les données sont déjà synchronisées.');
+        showToast('Tout est déjà synchronisé ☁️');
         syncBtn.style.opacity = '1';
         return;
       }
@@ -1316,10 +1431,9 @@
           body: JSON.stringify(payload)
         });
 
-        // Marquage des logs envoyés
         unsynced.forEach(l => { l.synced = true; });
         saveStoredEvents(logs);
-        alert(`Synchronisation réussie (${unsynced.length} fait(s) envoyé(s)).`);
+        showToast(`☁️ ${unsynced.length} fait(s) synchronisé(s) !`);
       } catch (err) {
         alert('Échec de connexion au relais distant.');
       } finally {
@@ -1329,7 +1443,7 @@
     }
 
     /* ==========================================================================
-       11. EXPORTATION, RESTAURATION & MAINTENANCE
+       12. EXPORTATION, RESTAURATION & MAINTENANCE
        ========================================================================== */
     function exportBackupData() {
       const payload = {
@@ -1351,6 +1465,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showToast('Sauvegarde exportée (JSON) 📥');
     }
 
     function importBackupData(event) {
@@ -1366,7 +1481,7 @@
           if (data.behavior_domains) saveDomains(data.behavior_domains);
           if (data.active_timers) saveActiveTimers(data.active_timers);
           if (data.behavior_challenges) saveChallenges(data.behavior_challenges);
-          alert('Sauvegarde restaurée avec succès !');
+          showToast('Sauvegarde restaurée avec succès ! 📤');
           refreshAllUI();
         } catch(err) {
           alert('Fichier JSON invalide.');
@@ -1390,7 +1505,7 @@
     }
 
     /* ==========================================================================
-       12. RAFRAÎCHISSEMENT UNIFIÉ & CYCLE DE VIE
+       13. RAFRAÎCHISSEMENT UNIFIÉ & CYCLE DE VIE
        ========================================================================== */
     function refreshAllUI() {
       renderHeaderChips();
@@ -1407,14 +1522,12 @@
 
     window.addEventListener('load', () => {
       refreshAllUI();
-      // Boucle dynamique par seconde pour les chronomètres et jauges live
       setInterval(() => {
         renderActiveTimersBanner();
         renderChallenges();
         renderStreakBanner();
       }, 1000);
 
-      // Enregistrement PWA Service Worker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       }
